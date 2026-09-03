@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Carriers</title>
+</head>
+
+<body>
+
+<h1>Carriers</h1>
+
+<table border="1">
+
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Phone</th>
+    <th>Country</th>
+    <th>City</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+
+  <tbody>
+
+  <tr th:each="carrier : ${carriers}">
+
+    <td th:text="${carrier.name}"></td>
+    <td th:text="${carrier.email}"></td>
+    <td th:text="${carrier.phone}"></td>
+    <td th:text="${carrier.country}"></td>
+    <td th:text="${carrier.city}"></td>
+    <td>
+
+      <a th:href="@{/carriers/edit/{id}(id=${carrier.id})}">
+        Edit
+      </a>
+
+      <form th:action="@{/carriers/delete/{id}(id=${carrier.id})}"
+            method="post"
+            style="display: inline;">
+
+        <button type="submit">Delete</button>
+
+      </form>
+
+    </td>
+
+  </tr>
+
+  </tbody>
+
+</table>
+
+</body>
+</html>

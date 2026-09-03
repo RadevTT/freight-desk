@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Freight Request</title>
+</head>
+
+<body>
+
+<h1>Freight Request</h1>
+
+<form th:action="@{/freight-requests}"
+      th:object="${freightRequest}"
+      method="post">
+
+  <input type="hidden" th:field="*{id}">
+
+  <label>Customer:</label>
+
+  <select th:field="*{customerId}">
+    <option value="">Select customer</option>
+
+    <option th:each="customer : ${customers}"
+            th:value="${customer.id}"
+            th:text="${customer.name}">
+    </option>
+  </select>
+
+  <br><br>
+
+  <label>Carrier:</label>
+
+  <select th:field="*{carrierId}">
+    <option value="">Select carrier</option>
+
+    <option th:each="carrier : ${carriers}"
+            th:value="${carrier.id}"
+            th:text="${carrier.name}">
+    </option>
+  </select>
+
+  <br><br>
+
+  <label>Request date:</label>
+
+  <input type="date"
+         name="requestDate"
+         th:value="${freightRequest.requestDate != null ? #temporals.format(freightRequest.requestDate, 'yyyy-MM-dd') : ''}">
+
+  <br><br>
+
+  <label>Loading date:</label>
+
+  <input type="date"
+         name="loadingDate"
+         th:value="${freightRequest.loadingDate != null ? #temporals.format(freightRequest.loadingDate, 'yyyy-MM-dd') : ''}">
+
+  <br><br>
+
+  <label>Delivery time:</label>
+
+  <input type="text"
+         id="deliveryTime"
+         th:field="*{deliveryTime}"
+         placeholder="e.g. 2-3 days">
+
+  <input type="date"
+         id="deliveryDatePicker"
+         style="margin-left: 5px;">
+
+  <br><br>
+
+  <script>
+    document.getElementById("deliveryDatePicker")
+        .addEventListener("change", function () {
+
+            if (this.value) {
+                document.getElementById("deliveryTime").value =
+                    this.value;
+            }
+        });
+  </script>
+
+  <h3>Loading</h3>
+
+  <label>Country:</label>
+
+  <select th:field="*{loadingCountry}">
+
+    <option value="">Select country</option>
+
+    <option th:each="country : ${countries}"
+            th:value="${country.code}"
+            th:text="${country.name}">
+    </option>
+
+  </select>
+
+  <label>City:</label>
+
+  <input type="text"
+         th:field="*{loadingCity}">
+
+  <label>Postal code:</label>
+
+  <input type="text"
+         th:field="*{loadingPostalCode}">
+
+  <br><br>
+
+  <h3>Unloading</h3>
+
+  <label>Country:</label>
+
+  <select th:field="*{unloadingCountry}">
+
+    <option value="">Select country</option>
+
+    <option th:each="country : ${countries}"
+            th:value="${country.code}"
+            th:text="${country.name}">
+    </option>
+
+  </select>
+
+  <label>City:</label>
+
+  <input type="text"
+         th:field="*{unloadingCity}">
+
+  <label>Postal code:</label>
+
+  <input type="text"
+         th:field="*{unloadingPostalCode}">
+
+  <br><br>
+
+  <h3>Cargo</h3>
+
+  <label>Weight:</label>
+
+  <input type="number"
+         step="0.01"
+         th:field="*{weight}">
+
+  <label>Loading meters:</label>
+
+  <input type="number"
+         step="0.01"
+         th:field="*{loadingMeters}">
+
+  <label>Volume:</label>
+
+  <input type="number"
+         step="0.01"
+         th:field="*{volume}">
+
+  <br><br>
+
+  <label>Dimensions (m):</label>
+
+  <input type="text"
+         th:field="*{dimensions}"
+         placeholder="e.g. 2.4 x 2.5 x 4.2">
+
+  <label>Pallets / pieces:</label>
+
+  <input type="number"
+         th:field="*{pallets}">
+
+  <br><br>
+
+  <label>Cargo type:</label>
+
+  <select th:field="*{cargoType}">
+
+    <option value="">Select cargo type</option>
+
+    <option value="grup">Групажен</option>
+    <option value="kompl">Комплектен</option>
+    <option value="korg">Групажен/Комплектен</option>
+    <option value="nasip">Насипен</option>
+    <option value="drug">Друг</option>
+
+  </select>
+
+  <br><br>
+
+  <h3>Speditor</h3>
+
+  <label>Speditor price:</label>
+
+  <input type="text"
+         th:field="*{speditorPrice}">
+
+  <br><br>
+
+  <label>Additional information:</label>
+
+  <input type="text"
+         th:field="*{additionalInfo}"
+         size="60">
+
+  <br><br>
+
+  <h3>Vehicle / transport requirements</h3>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{trailer}">
+    Прицеп
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{hanger}">
+    Хенгер
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{refrigerated}">
+    Хладилен
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{dualTemperature}">
+    Двутемпературен
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{van}">
+    Фургон
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{microbus}">
+    Микробус
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{clothingTruck}">
+    Дрехарка
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{solo}">
+    Соло
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{jumbo}">
+    Джъмбо
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{tractor}">
+    Влекач
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{platform}">
+    Платформа
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{flatbed}">
+    Бордови
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{containerTruck}">
+    Контейнеровоз
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{container}">
+    Контейнер
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{tanker}">
+    Цистерна
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{megatrailer}">
+    Мегатрейлър
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{carCarrier}">
+    Автовоз
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{gondola}">
+    Гондола
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{oversized}">
+    Извънгабаритен
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{trailerOnly}">
+    Ремарке
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{tunnel}">
+    С тунел
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{tailLift}">
+    Падащ борд
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{crane}">
+    Кран
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{twoDrivers}">
+    Двойка шофьори
+  </label>
+
+  <label>
+    <input type="checkbox"
+           th:field="*{palletTruck}">
+    Палетна количка
+  </label>
+
+  <br><br>
+
+  <h3>Prices</h3>
+
+  <label>Client price:</label>
+
+  <input type="number"
+         step="0.01"
+         th:field="*{clientPrice}">
+
+  <br><br>
+
+  <label>Carrier price:</label>
+
+  <input type="number"
+         step="0.01"
+         th:field="*{carrierPrice}">
+
+  <br><br>
+
+  <label>Status:</label>
+
+  <select th:field="*{status}">
+
+    <option value="">Select status</option>
+
+    <option th:each="status : ${T(bg.freightdesk.model.RequestStatus).values()}"
+            th:value="${status}"
+            th:text="${status}">
+    </option>
+
+  </select>
+
+  <br><br>
+
+  <button type="submit">Save</button>
+
+</form>
+
+</body>
+</html>

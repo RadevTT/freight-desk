@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Carrier</title>
+</head>
+
+<body>
+
+<h1>Carrier</h1>
+
+<form th:action="@{/carriers}"
+      th:object="${carrier}"
+      method="post">
+
+  <input type="hidden" th:field="*{id}">
+
+  <label>Name:</label>
+  <input type="text" th:field="*{name}">
+
+  <br><br>
+
+  <label>Email:</label>
+  <input type="email" th:field="*{email}">
+
+  <br><br>
+
+  <label>Phone:</label>
+  <input type="text" th:field="*{phone}">
+
+  <br><br>
+
+  <label>Country:</label>
+  <input type="text" th:field="*{country}">
+
+  <br><br>
+
+  <label>City:</label>
+  <input type="text" th:field="*{city}">
+
+  <br><br>
+
+  <label>Company:</label>
+
+  <select th:field="*{companyId}">
+
+    <option value="">Select company</option>
+
+    <option th:each="company : ${companies}"
+            th:value="${company.id}"
+            th:text="${company.name}">
+    </option>
+
+  </select>
+
+  <br><br>
+
+  <button type="submit">Save</button>
+
+</form>
+
+</body>
+</html>
+

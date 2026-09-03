@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Company</title>
+</head>
+
+<body>
+
+<h1>Company</h1>
+
+<form th:action="@{/companies}"
+      th:object="${company}"
+      method="post">
+
+  <input type="hidden" th:field="*{id}">
+
+  <label>Name:</label>
+  <input type="text" th:field="*{name}">
+
+  <br><br>
+
+  <label>Company code:</label>
+  <input type="text" th:field="*{companyCode}">
+
+  <br><br>
+
+  <label>Type:</label>
+
+  <select th:field="*{type}">
+
+    <option value="">-- Select type --</option>
+
+    <option th:each="type : ${companyTypes}"
+            th:value="${type}"
+            th:text="${type}">
+    </option>
+
+  </select>
+
+  <br><br>
+
+  <button type="submit">Save</button>
+
+</form>
+
+</body>
+</html>
+

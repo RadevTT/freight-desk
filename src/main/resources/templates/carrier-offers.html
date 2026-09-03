@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Carrier Offers</title>
+</head>
+
+<body>
+
+<h1>Carrier Offers</h1>
+
+<h2>Freight Request</h2>
+
+<p>
+  <strong>From:</strong>
+  <span th:text="${freightRequest.loadingCountry}"></span>
+  <span th:text="${freightRequest.loadingCity}"></span>
+</p>
+
+<p>
+  <strong>To:</strong>
+  <span th:text="${freightRequest.unloadingCountry}"></span>
+  <span th:text="${freightRequest.unloadingCity}"></span>
+</p>
+
+<p>
+  <strong>Loading date:</strong>
+  <span th:text="${freightRequest.loadingDate}"></span>
+</p>
+
+
+<hr>
+
+
+<h2>Existing Offers</h2>
+
+<table border="1">
+
+  <thead>
+  <tr>
+    <th>Carrier</th>
+    <th>Price</th>
+    <th>Currency</th>
+    <th>Date</th>
+    <th>Note</th>
+    <th>Selected</th>
+    <th>Action</th>
+  </tr>
+  </thead>
+
+  <tbody>
+
+  <tr th:each="offer : ${offers}">
+
+    <td th:text="${offer.carrierId}">
+      Carrier
+    </td>
+
+    <td th:text="${offer.offeredPrice}">
+      0
+    </td>
+
+    <td th:text="${offer.currency}">
+      EUR
+    </td>
+
+    <td th:text="${offer.offerDate}">
+      Date
+    </td>
+
+    <td th:text="${offer.note}">
+      Note
+    </td>
+
+    <td th:text="${offer.selected}">
+      false
+    </td>
+
+    <td>
+      <a th:href="@{/carrier-offers/{id}/delete(id=${offer.id})}">
+        Delete
+      </a>
+    </td>
+
+  </tr>
+
+  </tbody>
+
+</table>
+
+
+<hr>
+
+
+<h2>Add Carrier Offer</h2>
+
+<form th:action="@{/freight-requests/{id}/offers(id=${freightRequest.id})}"
+      th:object="${carrierOffer}"
+      method="post">
+
+  <div>
+
+    <label>Carrier:</label>
+
+    <select th:field="*{carrierId}">
+
+      <option value="">
+        -- Select Carrier --
+      </option>
+
+      <option th:each="carrier : ${carriers}"
+              th:value="${carrier.id}"
+              th:text="${carrier.name}">
+      </option>
+
+    </select>
+
+  </div>
+
+  <br>
+
+
+  <div>
+
+    <label>Offered Price:</label>
+
+    <input type="number"
+           step="0.01"
+           th:field="*{offeredPrice}">
+
+  </div>
+
+  <br>
+
+
+  <div>
+
+    <label>Currency:</label>
+
+    <select th:field="*{currency}">
+
+      <option value="EUR">EUR</option>
+      <option value="BGN">BGN</option>
+      <option value="USD">USD</option>
+
+    </select>
+
+  </div>
+
+  <br>
+
+
+  <div>
+
+    <label>Note:</label>
+
+    <input type="text"
+           th:field="*{note}"
+           size="50">
+
+  </div>
+
+  <br>
+
+
+  <button type="submit">
+    Add Offer
+  </button>
+
+</form>
+
+
+<br>
+
+<a th:href="@{/freight-requests}">
+  Back to Freight Requests
+</a>
+
+</body>
+
+</html>

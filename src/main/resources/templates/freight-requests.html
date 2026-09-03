@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Freight Requests</title>
+</head>
+
+<body>
+
+<h1>Freight Requests</h1>
+
+<table border="1">
+
+  <thead>
+  <tr>
+    <th>Date</th>
+    <th>Loading</th>
+    <th>Loading Date</th>
+    <th>Delivery Time</th>
+    <th>Unloading</th>
+    <th>Weight</th>
+    <th>LDM</th>
+    <th>Client Price</th>
+    <th>Carrier Price</th>
+    <th>Profit</th>
+    <th>Status</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+
+  <tbody>
+
+  <tr th:each="request : ${freightRequests}">
+
+    <td th:text="${request.requestDate}"></td>
+
+    <td th:text="${request.loadingCity + ', ' + request.loadingCountry}"></td>
+
+    <td th:text="${request.loadingDate}"></td>
+
+    <td th:text="${request.deliveryTime}"></td>
+
+    <td th:text="${request.unloadingCity + ', ' + request.unloadingCountry}"></td>
+
+    <td th:text="${request.weight}"></td>
+
+    <td th:text="${request.loadingMeters}"></td>
+
+    <td th:text="${request.clientPrice}"></td>
+
+    <td th:text="${request.carrierPrice}"></td>
+
+    <td th:text="${request.profit}"></td>
+
+    <td th:text="${request.status}"></td>
+
+    <td>
+
+      <a th:href="@{/freight-requests/{id}/edit(id=${request.id})}">
+        Edit
+      </a>
+
+      <a th:href="@{/freight-requests/{id}/delete(id=${request.id})}">
+        Delete
+      </a>
+
+      <a th:href="@{/freight-requests/{id}/offers(id=${request.id})}">
+        Offers
+      </a>
+
+      <form th:action="@{/freight-requests/{id}/publish-speditor(id=${request.id})}"
+            method="post"
+            style="display:inline;">
+
+        <button type="submit">
+          Публикувай в Speditor
+        </button>
+
+      </form>
+
+    </td>
+
+  </tr>
+
+  </tbody>
+
+</table>
+
+</body>
+</html>
