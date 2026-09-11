@@ -16,31 +16,65 @@
 
   <input type="hidden" th:field="*{id}">
 
+  <!-- CUSTOMER -->
+
   <label>Customer:</label>
 
   <select th:field="*{customerId}">
+
     <option value="">Select customer</option>
 
     <option th:each="customer : ${customers}"
             th:value="${customer.id}"
             th:text="${customer.name}">
     </option>
+
   </select>
 
   <br><br>
 
-  <label>Carrier:</label>
+  <!-- CARRIER COMPANY -->
 
-  <select th:field="*{carrierId}">
-    <option value="">Select carrier</option>
+  <label>Carrier company:</label>
 
-    <option th:each="carrier : ${carriers}"
-            th:value="${carrier.id}"
-            th:text="${carrier.name}">
+  <select id="carrierCompany">
+
+    <option value="">Select company</option>
+
+    <option th:each="company : ${carrierCompanies}"
+            th:value="${company.id}"
+            th:text="${company.name}"
+            th:selected="${company.id == selectedCarrierCompanyId}">
     </option>
+
   </select>
 
   <br><br>
+
+  <!-- CARRIER CONTACT -->
+
+  <div id="carrierContactContainer"
+       th:style="${selectedCarrierCompanyId != null} ? 'display: block;' : 'display: none;'">
+
+    <label>Contact:</label>
+
+    <select id="carrierContact"
+            th:field="*{carrierId}">
+
+      <option value="">Select contact</option>
+
+      <option th:each="carrier : ${carrierContacts}"
+              th:value="${carrier.id}"
+              th:text="${carrier.name}">
+      </option>
+
+    </select>
+
+  </div>
+
+  <br><br>
+
+  <!-- REQUEST DATE -->
 
   <label>Request date:</label>
 
@@ -50,6 +84,8 @@
 
   <br><br>
 
+  <!-- LOADING DATE -->
+
   <label>Loading date:</label>
 
   <input type="date"
@@ -57,6 +93,8 @@
          th:value="${freightRequest.loadingDate != null ? #temporals.format(freightRequest.loadingDate, 'yyyy-MM-dd') : ''}">
 
   <br><br>
+
+  <!-- DELIVERY TIME -->
 
   <label>Delivery time:</label>
 
@@ -72,15 +110,20 @@
   <br><br>
 
   <script>
+
     document.getElementById("deliveryDatePicker")
         .addEventListener("change", function () {
 
             if (this.value) {
+
                 document.getElementById("deliveryTime").value =
                     this.value;
             }
         });
+
   </script>
+
+  <!-- LOADING -->
 
   <h3>Loading</h3>
 
@@ -109,6 +152,8 @@
 
   <br><br>
 
+  <!-- UNLOADING -->
+
   <h3>Unloading</h3>
 
   <label>Country:</label>
@@ -135,6 +180,8 @@
          th:field="*{unloadingPostalCode}">
 
   <br><br>
+
+  <!-- CARGO -->
 
   <h3>Cargo</h3>
 
@@ -171,6 +218,8 @@
 
   <br><br>
 
+  <!-- CARGO TYPE -->
+
   <label>Cargo type:</label>
 
   <select th:field="*{cargoType}">
@@ -178,14 +227,20 @@
     <option value="">Select cargo type</option>
 
     <option value="grup">Групажен</option>
+
     <option value="kompl">Комплектен</option>
+
     <option value="korg">Групажен/Комплектен</option>
+
     <option value="nasip">Насипен</option>
+
     <option value="drug">Друг</option>
 
   </select>
 
   <br><br>
+
+  <!-- SPEDITOR -->
 
   <h3>Speditor</h3>
 
@@ -203,6 +258,8 @@
          size="60">
 
   <br><br>
+
+  <!-- VEHICLE / TRANSPORT REQUIREMENTS -->
 
   <h3>Vehicle / transport requirements</h3>
 
@@ -358,6 +415,8 @@
 
   <br><br>
 
+  <!-- PRICES -->
+
   <h3>Prices</h3>
 
   <label>Client price:</label>
@@ -375,6 +434,8 @@
          th:field="*{carrierPrice}">
 
   <br><br>
+
+  <!-- STATUS -->
 
   <label>Status:</label>
 
@@ -394,6 +455,69 @@
   <button type="submit">Save</button>
 
 </form>
+
+
+<!-- CARRIER COMPANY → CONTACT -->
+
+<script>
+
+  const companySelect =
+      document.getElementById("carrierCompany");
+
+  const contactContainer =
+      document.getElementById("carrierContactContainer");
+
+  const contactSelect =
+      document.getElementById("carrierContact");
+
+
+  companySelect.addEventListener("change", function () {
+
+      const companyId = this.value;
+
+      contactSelect.innerHTML =
+          '<option value="">Select contact</option>';
+
+
+      if (!companyId) {
+
+          contactContainer.style.display = "none";
+
+          return;
+      }
+
+
+      fetch(
+          "/freight-requests/carriers?companyId="
+          + companyId
+      )
+      .then(response => response.json())
+      .then(carriers => {
+
+          carriers.forEach(carrier => {
+
+              const option =
+                  document.createElement("option");
+
+              option.value =
+                  carrier.id;
+
+              option.textContent =
+                  carrier.name;
+
+              contactSelect.appendChild(
+                  option
+              );
+          });
+
+
+          contactContainer.style.display = "block";
+      });
+
+  });
+
+</script>
+
 
 </body>
 </html>
