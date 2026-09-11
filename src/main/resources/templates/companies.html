@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -14,6 +15,10 @@
   Add Company
 </a>
 
+<a th:href="@{/companies/inactive}">
+  Inactive Companies
+</a>
+
 <br><br>
 
 <table border="1">
@@ -22,6 +27,8 @@
   <tr>
     <th>Name</th>
     <th>Company Code</th>
+    <th>Country</th>
+    <th>City</th>
     <th>Type</th>
     <th>Actions</th>
   </tr>
@@ -35,6 +42,10 @@
 
     <td th:text="${company.companyCode}"></td>
 
+    <td th:text="${company.country}"></td>
+
+    <td th:text="${company.city}"></td>
+
     <td th:text="${company.type}"></td>
 
     <td>
@@ -43,11 +54,11 @@
         Edit
       </a>
 
-      <form th:action="@{/companies/delete/{id}(id=${company.id})}"
+      <form th:action="@{/companies/deactivate/{id}(id=${company.id})}"
             method="post"
             style="display: inline;">
 
-        <button type="submit">Delete</button>
+        <button type="submit">Deactivate</button>
 
       </form>
 
@@ -61,4 +72,3 @@
 
 </body>
 </html>
-

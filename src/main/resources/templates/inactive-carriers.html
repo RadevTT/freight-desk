@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Inactive Carriers</title>
+</head>
+
+<body>
+
+<h1>Inactive Carriers</h1>
+
+<a th:href="@{/carriers}">
+    Active Carriers
+</a>
+
+<table border="1">
+
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Company</th>
+        <th>Country</th>
+        <th>City</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+
+    <tr th:each="carrier : ${carriers}">
+
+        <td th:text="${carrier.name}"></td>
+        <td th:text="${carrier.email}"></td>
+        <td th:text="${carrier.phone}"></td>
+        <td th:text="${carrier.companyName}"></td>
+        <td th:text="${carrier.companyCountry}"></td>
+        <td th:text="${carrier.companyCity}"></td>
+
+        <td>
+
+            <form th:action="@{/carriers/activate/{id}(id=${carrier.id})}"
+                  method="post">
+
+                <button type="submit">Activate</button>
+
+            </form>
+
+        </td>
+
+    </tr>
+
+    </tbody>
+
+</table>
+
+</body>
+</html>

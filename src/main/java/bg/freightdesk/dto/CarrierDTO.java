@@ -12,11 +12,15 @@ public class CarrierDTO {
 
     private String phone;
 
-    private String country;
-
-    private String city;
-
     private UUID companyId;
+
+    private String companyName;
+
+    private String companyCountry;
+
+    private String companyCity;
+
+    private boolean active = true;
 
 
     public CarrierDTO() {
@@ -55,27 +59,43 @@ public class CarrierDTO {
         this.phone = phone;
     }
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
     public UUID getCompanyId() {
         return companyId;
     }
 
     public void setCompanyId(UUID companyId) {
         this.companyId = companyId;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getCompanyCountry() {
+        return companyCountry;
+    }
+
+    public void setCompanyCountry(String companyCountry) {
+        this.companyCountry = companyCountry;
+    }
+
+    public String getCompanyCity() {
+        return companyCity;
+    }
+
+    public void setCompanyCity(String companyCity) {
+        this.companyCity = companyCity;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

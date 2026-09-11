@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Inactive Customers</title>
+</head>
+
+<body>
+
+<h1>Inactive Customers</h1>
+
+<a th:href="@{/customers}">
+    Active Customers
+</a>
+
+<br><br>
+
+<table border="1">
+
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Company</th>
+        <th>Country</th>
+        <th>City</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+
+    <tr th:each="customer : ${customers}">
+
+        <td th:text="${customer.name}"></td>
+
+        <td th:text="${customer.email}"></td>
+
+        <td th:text="${customer.phone}"></td>
+
+        <td th:text="${customer.companyName}"></td>
+
+        <td th:text="${customer.companyCountry}"></td>
+
+        <td th:text="${customer.companyCity}"></td>
+
+        <td>
+
+            <form th:action="@{/customers/activate/{id}(id=${customer.id})}"
+                  method="post">
+
+                <button type="submit">Activate</button>
+
+            </form>
+
+        </td>
+
+    </tr>
+
+    </tbody>
+
+</table>
+
+</body>
+</html>

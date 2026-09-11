@@ -15,6 +15,9 @@ public class CompanyMapper {
         dto.setName(company.getName());
         dto.setCompanyCode(company.getCompanyCode());
         dto.setType(company.getType());
+        dto.setCountry(company.getCountry());
+        dto.setCity(company.getCity());
+        dto.setActive(company.isActive());
 
         return dto;
     }
@@ -27,6 +30,9 @@ public class CompanyMapper {
         company.setName(dto.getName());
         company.setCompanyCode(dto.getCompanyCode());
         company.setType(dto.getType());
+        company.setCountry(dto.getCountry());
+        company.setCity(dto.getCity());
+        company.setActive(dto.isActive());
 
         return company;
     }

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -10,6 +11,14 @@
 
 <h1>Carriers</h1>
 
+<a th:href="@{/carriers/new}">
+  + Add Carrier
+</a>
+
+<a th:href="@{/carriers/inactive}">
+  Inactive Carriers
+</a>
+
 <table border="1">
 
   <thead>
@@ -17,6 +26,7 @@
     <th>Name</th>
     <th>Email</th>
     <th>Phone</th>
+    <th>Company</th>
     <th>Country</th>
     <th>City</th>
     <th>Actions</th>
@@ -30,19 +40,21 @@
     <td th:text="${carrier.name}"></td>
     <td th:text="${carrier.email}"></td>
     <td th:text="${carrier.phone}"></td>
-    <td th:text="${carrier.country}"></td>
-    <td th:text="${carrier.city}"></td>
+    <td th:text="${carrier.companyName}"></td>
+    <td th:text="${carrier.companyCountry}"></td>
+    <td th:text="${carrier.companyCity}"></td>
+
     <td>
 
       <a th:href="@{/carriers/edit/{id}(id=${carrier.id})}">
         Edit
       </a>
 
-      <form th:action="@{/carriers/delete/{id}(id=${carrier.id})}"
+      <form th:action="@{/carriers/deactivate/{id}(id=${carrier.id})}"
             method="post"
             style="display: inline;">
 
-        <button type="submit">Delete</button>
+        <button type="submit">Deactivate</button>
 
       </form>
 

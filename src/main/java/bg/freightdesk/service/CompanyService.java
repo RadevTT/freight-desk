@@ -26,7 +26,15 @@ public class CompanyService {
 
     public List<CompanyDTO> findAll() {
 
-        return companyRepository.findAll()
+        return companyRepository.findAllByActiveTrue()
+                .stream()
+                .map(companyMapper::toDTO)
+                .toList();
+    }
+
+    public List<CompanyDTO> findInactive() {
+
+        return companyRepository.findAllByActiveFalse()
                 .stream()
                 .map(companyMapper::toDTO)
                 .toList();
@@ -41,18 +49,6 @@ public class CompanyService {
         return companyMapper.toDTO(company);
     }
 
-    public void saveDTO(CompanyDTO dto) {
-
-        Company company =
-                companyMapper.toEntity(dto);
-
-        companyRepository.save(company);
-    }
-
-    public void delete(UUID id) {
-        companyRepository.deleteById(id);
-    }
-
     public Company findEntityById(UUID id) {
 
         return companyRepository.findById(id)
@@ -60,11 +56,52 @@ public class CompanyService {
                         new RuntimeException("Company not found"));
     }
 
+    public CompanyDTO saveDTO(CompanyDTO dto) {
+
+        Company company =
+                companyMapper.toEntity(dto);
+
+        Company savedCompany =
+                companyRepository.save(company);
+
+        return companyMapper.toDTO(savedCompany);
+    }
+
+    public void deactivate(UUID id) {
+
+        Company company =
+                companyRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException("Company not found"));
+
+        company.setActive(false);
+
+        companyRepository.save(company);
+    }
+
+    public void activate(UUID id) {
+
+        Company company =
+                companyRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException("Company not found"));
+
+        company.setActive(true);
+
+        companyRepository.save(company);
+    }
+
     public List<CompanyDTO> findAllByType(CompanyType type) {
 
         return companyRepository.findAllByType(type)
                 .stream()
+                .filter(Company::isActive)
                 .map(companyMapper::toDTO)
                 .toList();
+    }
+
+    public void delete(UUID id) {
+
+        companyRepository.deleteById(id);
     }
 }

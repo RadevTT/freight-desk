@@ -23,11 +23,25 @@ public class CustomerMapper {
         dto.setName(customer.getName());
         dto.setEmail(customer.getEmail());
         dto.setPhone(customer.getPhone());
-        dto.setCountry(customer.getCountry());
-        dto.setCity(customer.getCity());
+        dto.setActive(customer.isActive());
 
         if (customer.getCompany() != null) {
-            dto.setCompanyId(customer.getCompany().getId());
+
+            dto.setCompanyId(
+                    customer.getCompany().getId()
+            );
+
+            dto.setCompanyName(
+                    customer.getCompany().getName()
+            );
+
+            dto.setCompanyCountry(
+                    customer.getCompany().getCountry()
+            );
+
+            dto.setCompanyCity(
+                    customer.getCompany().getCity()
+            );
         }
 
         return dto;
@@ -41,8 +55,7 @@ public class CustomerMapper {
         customer.setName(dto.getName());
         customer.setEmail(dto.getEmail());
         customer.setPhone(dto.getPhone());
-        customer.setCountry(dto.getCountry());
-        customer.setCity(dto.getCity());
+        customer.setActive(dto.isActive());
 
         if (dto.getCompanyId() != null) {
 
@@ -55,3 +68,4 @@ public class CustomerMapper {
         return customer;
     }
 }
+

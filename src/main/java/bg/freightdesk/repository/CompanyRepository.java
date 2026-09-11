@@ -10,4 +10,8 @@ import java.util.UUID;
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
 
     List<Company> findAllByType(CompanyType type);
+
+    List<Company> findAllByActiveTrue();
+
+    List<Company> findAllByActiveFalse();
 }

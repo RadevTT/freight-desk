@@ -1,6 +1,7 @@
 package bg.freightdesk.controller;
 
 import bg.freightdesk.dto.CarrierDTO;
+import bg.freightdesk.model.CompanyType;
 import bg.freightdesk.service.CarrierService;
 import bg.freightdesk.service.CompanyService;
 import org.springframework.stereotype.Controller;
@@ -42,7 +43,11 @@ public class CarrierController {
     public String showCarrierForm(Model model) {
 
         model.addAttribute("carrier", new CarrierDTO());
-        model.addAttribute("companies", companyService.findAll());
+
+        model.addAttribute(
+                "companies",
+                companyService.findAllByType(CompanyType.CARRIER)
+        );
 
         return "carrier-form";
     }
@@ -65,16 +70,40 @@ public class CarrierController {
                 carrierService.findDTOById(id);
 
         model.addAttribute("carrier", dto);
-        model.addAttribute("companies", companyService.findAll());
+
+        model.addAttribute(
+                "companies",
+                companyService.findAllByType(CompanyType.CARRIER)
+        );
 
         return "carrier-form";
     }
 
-    @PostMapping("/carriers/delete/{id}")
-    public String deleteCarrier(@PathVariable UUID id) {
+    @PostMapping("/carriers/deactivate/{id}")
+    public String deactivateCarrier(@PathVariable UUID id) {
 
-        carrierService.delete(id);
+        carrierService.deactivate(id);
 
         return "redirect:/carriers";
     }
+
+    @GetMapping("/carriers/inactive")
+    public String showInactiveCarriers(Model model) {
+
+        List<CarrierDTO> carriers =
+                carrierService.findInactive();
+
+        model.addAttribute("carriers", carriers);
+
+        return "inactive-carriers";
+    }
+
+    @PostMapping("/carriers/activate/{id}")
+    public String activateCarrier(@PathVariable UUID id) {
+
+        carrierService.activate(id);
+
+        return "redirect:/carriers/inactive";
+    }
 }
+

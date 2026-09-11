@@ -23,11 +23,26 @@ public class CarrierMapper {
         dto.setName(carrier.getName());
         dto.setEmail(carrier.getEmail());
         dto.setPhone(carrier.getPhone());
-        dto.setCountry(carrier.getCountry());
-        dto.setCity(carrier.getCity());
+
+        dto.setActive(carrier.isActive());
 
         if (carrier.getCompany() != null) {
-            dto.setCompanyId(carrier.getCompany().getId());
+
+            dto.setCompanyId(
+                    carrier.getCompany().getId()
+            );
+
+            dto.setCompanyName(
+                    carrier.getCompany().getName()
+            );
+
+            dto.setCompanyCountry(
+                    carrier.getCompany().getCountry()
+            );
+
+            dto.setCompanyCity(
+                    carrier.getCompany().getCity()
+            );
         }
 
         return dto;
@@ -41,8 +56,8 @@ public class CarrierMapper {
         carrier.setName(dto.getName());
         carrier.setEmail(dto.getEmail());
         carrier.setPhone(dto.getPhone());
-        carrier.setCountry(dto.getCountry());
-        carrier.setCity(dto.getCity());
+
+        carrier.setActive(dto.isActive());
 
         if (dto.getCompanyId() != null) {
 
@@ -55,4 +70,3 @@ public class CarrierMapper {
         return carrier;
     }
 }
-

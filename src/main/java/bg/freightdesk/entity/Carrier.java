@@ -22,9 +22,7 @@ public class Carrier {
 
     private String phone;
 
-    private String country;
-
-    private String city;
+    private boolean active = true;
 
     @ManyToOne
     private Company company;
@@ -64,22 +62,6 @@ public class Carrier {
         this.phone = phone;
     }
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
     public Company getCompany() {
         return company;
     }
@@ -87,4 +69,13 @@ public class Carrier {
     public void setCompany(Company company) {
         this.company = company;
     }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }
+

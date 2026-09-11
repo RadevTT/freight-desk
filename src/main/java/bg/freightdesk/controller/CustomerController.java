@@ -1,6 +1,7 @@
 package bg.freightdesk.controller;
 
 import bg.freightdesk.dto.CustomerDTO;
+import bg.freightdesk.model.CompanyType;
 import bg.freightdesk.service.CompanyService;
 import bg.freightdesk.service.CustomerService;
 import org.springframework.stereotype.Controller;
@@ -42,7 +43,11 @@ public class CustomerController {
     public String showCustomerForm(Model model) {
 
         model.addAttribute("customer", new CustomerDTO());
-        model.addAttribute("companies", companyService.findAll());
+
+        model.addAttribute(
+                "companies",
+                companyService.findAllByType(CompanyType.CUSTOMER)
+        );
 
         return "customer-form";
     }
@@ -65,17 +70,40 @@ public class CustomerController {
                 customerService.findDTOById(id);
 
         model.addAttribute("customer", dto);
-        model.addAttribute("companies", companyService.findAll());
+
+        model.addAttribute(
+                "companies",
+                companyService.findAllByType(CompanyType.CUSTOMER)
+        );
 
         return "customer-form";
     }
 
-    @PostMapping("/customers/delete/{id}")
-    public String deleteCustomer(@PathVariable UUID id) {
+    @PostMapping("/customers/deactivate/{id}")
+    public String deactivateCustomer(@PathVariable UUID id) {
 
-        customerService.delete(id);
+        customerService.deactivate(id);
 
         return "redirect:/customers";
+    }
+
+    @GetMapping("/customers/inactive")
+    public String showInactiveCustomers(Model model) {
+
+        List<CustomerDTO> customers =
+                customerService.findInactive();
+
+        model.addAttribute("customers", customers);
+
+        return "inactive-customers";
+    }
+
+    @PostMapping("/customers/activate/{id}")
+    public String activateCustomer(@PathVariable UUID id) {
+
+        customerService.activate(id);
+
+        return "redirect:/customers/inactive";
     }
 }
 

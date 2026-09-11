@@ -16,8 +16,14 @@ public class Company {
 
     private String companyCode;
 
+    private String country;
+
+    private String city;
+
     @Enumerated(EnumType.STRING)
     private CompanyType type;
+
+    private boolean active = true;
 
     public Company() {
     }
@@ -52,5 +58,29 @@ public class Company {
 
     public void setType(CompanyType type) {
         this.type = type;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
