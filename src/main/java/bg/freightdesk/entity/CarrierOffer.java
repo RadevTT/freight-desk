@@ -1,6 +1,7 @@
 package bg.freightdesk.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,9 +20,14 @@ public class CarrierOffer {
     private FreightRequest freightRequest;
 
     @ManyToOne
-    @JoinColumn(name = "carrier_id", nullable = false)
+    @JoinColumn(name = "company_id", nullable = false)
+    private Company company;
+
+    @ManyToOne
+    @JoinColumn(name = "carrier_id")
     private Carrier carrier;
 
+    @NotNull(message = "Offered price is required")
     @Column(nullable = false)
     private BigDecimal offeredPrice;
 
@@ -94,5 +100,13 @@ public class CarrierOffer {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 }

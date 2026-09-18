@@ -10,6 +10,8 @@ public class CarrierOfferDTO {
 
     private UUID freightRequestId;
 
+    private UUID companyId;
+
     private UUID carrierId;
 
     private BigDecimal offeredPrice;
@@ -27,6 +29,10 @@ public class CarrierOfferDTO {
 
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public UUID getFreightRequestId() {
@@ -83,5 +89,13 @@ public class CarrierOfferDTO {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public UUID getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
     }
 }

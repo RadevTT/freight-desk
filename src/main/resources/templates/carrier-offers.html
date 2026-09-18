@@ -39,7 +39,8 @@
 
   <thead>
   <tr>
-    <th>Carrier</th>
+    <th>Carrier Company</th>
+    <th>Contact</th>
     <th>Price</th>
     <th>Currency</th>
     <th>Date</th>
@@ -53,8 +54,12 @@
 
   <tr th:each="offer : ${offers}">
 
+    <td th:text="${offer.companyId}">
+      Company
+    </td>
+
     <td th:text="${offer.carrierId}">
-      Carrier
+      Contact
     </td>
 
     <td th:text="${offer.offeredPrice}">
@@ -101,15 +106,40 @@
 
   <div>
 
-    <label>Carrier:</label>
+    <label>Carrier company:</label>
 
-    <select th:field="*{carrierId}">
+    <select id="carrierCompany"
+            th:field="*{companyId}">
 
       <option value="">
-        -- Select Carrier --
+        -- Select Company --
       </option>
 
-      <option th:each="carrier : ${carriers}"
+      <option th:each="company : ${carrierCompanies}"
+              th:value="${company.id}"
+              th:text="${company.name}">
+      </option>
+
+    </select>
+
+  </div>
+
+  <br>
+
+
+  <div id="carrierContactContainer"
+       style="display: none;">
+
+    <label>Carrier contact:</label>
+
+    <select id="carrierContact"
+            th:field="*{carrierId}">
+
+      <option value="">
+        -- No Contact --
+      </option>
+
+      <option th:each="carrier : ${carrierContacts}"
               th:value="${carrier.id}"
               th:text="${carrier.name}">
       </option>
@@ -127,7 +157,8 @@
 
     <input type="number"
            step="0.01"
-           th:field="*{offeredPrice}">
+           th:field="*{offeredPrice}"
+           required>
 
   </div>
 
@@ -176,6 +207,47 @@
 <a th:href="@{/freight-requests}">
   Back to Freight Requests
 </a>
+
+<script>
+
+  const carrierCompany = document.getElementById("carrierCompany");
+  const carrierContact = document.getElementById("carrierContact");
+  const carrierContactContainer =
+      document.getElementById("carrierContactContainer");
+
+  carrierCompany.addEventListener("change", function () {
+
+    const companyId = this.value;
+
+    carrierContact.innerHTML =
+        '<option value="">-- No Contact --</option>';
+
+    if (companyId === "") {
+
+      carrierContactContainer.style.display = "none";
+
+      return;
+    }
+
+    fetch("/carrier-offers/carriers?companyId=" + companyId)
+        .then(response => response.json())
+        .then(carriers => {
+
+          carriers.forEach(carrier => {
+
+            const option = document.createElement("option");
+
+            option.value = carrier.id;
+            option.textContent = carrier.name;
+
+            carrierContact.appendChild(option);
+          });
+
+          carrierContactContainer.style.display = "block";
+        });
+  });
+
+</script>
 
 </body>
 

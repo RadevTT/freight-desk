@@ -66,4 +66,31 @@ public class CarrierOfferService {
 
         carrierOfferRepository.deleteById(id);
     }
+
+    public void selectOffer(UUID offerId) {
+
+        CarrierOffer selectedOffer =
+                carrierOfferRepository.findById(offerId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Carrier offer not found"
+                                )
+                        );
+
+        UUID freightRequestId =
+                selectedOffer.getFreightRequest().getId();
+
+        List<CarrierOffer> offers =
+                carrierOfferRepository.findByFreightRequestId(
+                        freightRequestId
+                );
+
+        for (CarrierOffer offer : offers) {
+            offer.setSelected(
+                    offer.getId().equals(offerId)
+            );
+        }
+
+        carrierOfferRepository.saveAll(offers);
+    }
 }
