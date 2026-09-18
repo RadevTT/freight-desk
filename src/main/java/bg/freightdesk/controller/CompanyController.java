@@ -8,8 +8,10 @@ import bg.freightdesk.model.CompanyType;
 import bg.freightdesk.service.CarrierService;
 import bg.freightdesk.service.CompanyService;
 import bg.freightdesk.service.CustomerService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,12 +74,64 @@ public class CompanyController {
                 List.of()
         );
 
+        model.addAttribute(
+                "inactiveCustomers",
+                List.of()
+        );
+
+        model.addAttribute(
+                "inactiveCarriers",
+                List.of()
+        );
+
         return "company-form";
     }
 
     @PostMapping("/companies")
     public String saveCompany(
-            @ModelAttribute CompanyFormDTO dto) {
+            @Valid @ModelAttribute("company") CompanyFormDTO dto,
+            BindingResult bindingResult,
+            Model model) {
+
+        if (dto.getContactName() == null
+                || dto.getContactName().isBlank()) {
+
+            bindingResult.rejectValue(
+                    "contactName",
+                    "required",
+                    "Contact name is required"
+            );
+        }
+
+        if (bindingResult.hasErrors()) {
+
+            model.addAttribute(
+                    "companyTypes",
+                    CompanyType.values()
+            );
+
+            model.addAttribute(
+                    "customers",
+                    List.of()
+            );
+
+            model.addAttribute(
+                    "carriers",
+                    List.of()
+            );
+
+            model.addAttribute(
+                    "inactiveCustomers",
+                    List.of()
+            );
+
+            model.addAttribute(
+                    "inactiveCarriers",
+                    List.of()
+            );
+
+            return "company-form";
+        }
 
         CompanyDTO companyDTO =
                 new CompanyDTO();
@@ -92,39 +146,35 @@ public class CompanyController {
         CompanyDTO savedCompany =
                 companyService.saveDTO(companyDTO);
 
-        if (dto.getContactName() != null
-                && !dto.getContactName().isBlank()) {
+        if (dto.getType() == CompanyType.CUSTOMER) {
 
-            if (dto.getType() == CompanyType.CUSTOMER) {
+            CustomerDTO customer =
+                    new CustomerDTO();
 
-                CustomerDTO customer =
-                        new CustomerDTO();
+            customer.setName(dto.getContactName());
+            customer.setEmail(dto.getContactEmail());
+            customer.setPhone(dto.getContactPhone());
 
-                customer.setName(dto.getContactName());
-                customer.setEmail(dto.getContactEmail());
-                customer.setPhone(dto.getContactPhone());
+            customer.setCompanyId(
+                    savedCompany.getId()
+            );
 
-                customer.setCompanyId(
-                        savedCompany.getId()
-                );
+            customerService.saveDTO(customer);
 
-                customerService.saveDTO(customer);
+        } else if (dto.getType() == CompanyType.CARRIER) {
 
-            } else if (dto.getType() == CompanyType.CARRIER) {
+            CarrierDTO carrier =
+                    new CarrierDTO();
 
-                CarrierDTO carrier =
-                        new CarrierDTO();
+            carrier.setName(dto.getContactName());
+            carrier.setEmail(dto.getContactEmail());
+            carrier.setPhone(dto.getContactPhone());
 
-                carrier.setName(dto.getContactName());
-                carrier.setEmail(dto.getContactEmail());
-                carrier.setPhone(dto.getContactPhone());
+            carrier.setCompanyId(
+                    savedCompany.getId()
+            );
 
-                carrier.setCompanyId(
-                        savedCompany.getId()
-                );
-
-                carrierService.saveDTO(carrier);
-            }
+            carrierService.saveDTO(carrier);
         }
 
         return "redirect:/companies";
@@ -160,6 +210,16 @@ public class CompanyController {
                     List.of()
             );
 
+            model.addAttribute(
+                    "inactiveCustomers",
+                    customerService.findInactiveByCompany(id)
+            );
+
+            model.addAttribute(
+                    "inactiveCarriers",
+                    List.of()
+            );
+
         } else if (company.getType() == CompanyType.CARRIER) {
 
             model.addAttribute(
@@ -170,6 +230,16 @@ public class CompanyController {
             model.addAttribute(
                     "carriers",
                     carrierService.findAllByCompany(id)
+            );
+
+            model.addAttribute(
+                    "inactiveCustomers",
+                    List.of()
+            );
+
+            model.addAttribute(
+                    "inactiveCarriers",
+                    carrierService.findInactiveByCompany(id)
             );
 
         } else {
@@ -183,6 +253,16 @@ public class CompanyController {
                     "carriers",
                     List.of()
             );
+
+            model.addAttribute(
+                    "inactiveCustomers",
+                    List.of()
+            );
+
+            model.addAttribute(
+                    "inactiveCarriers",
+                    List.of()
+            );
         }
 
         return "company-form";
@@ -191,13 +271,92 @@ public class CompanyController {
     @PostMapping("/companies/edit/{id}")
     public String updateCompany(
             @PathVariable UUID id,
-            @ModelAttribute CompanyDTO dto) {
+            @Valid @ModelAttribute("company") CompanyDTO dto,
+            BindingResult bindingResult,
+            Model model) {
 
         dto.setId(id);
 
+        if (bindingResult.hasErrors()) {
+
+            model.addAttribute(
+                    "companyTypes",
+                    CompanyType.values()
+            );
+
+            if (dto.getType() == CompanyType.CUSTOMER) {
+
+                model.addAttribute(
+                        "customers",
+                        customerService.findAllByCompany(id)
+                );
+
+                model.addAttribute(
+                        "carriers",
+                        List.of()
+                );
+
+                model.addAttribute(
+                        "inactiveCustomers",
+                        customerService.findInactiveByCompany(id)
+                );
+
+                model.addAttribute(
+                        "inactiveCarriers",
+                        List.of()
+                );
+
+            } else if (dto.getType() == CompanyType.CARRIER) {
+
+                model.addAttribute(
+                        "customers",
+                        List.of()
+                );
+
+                model.addAttribute(
+                        "carriers",
+                        carrierService.findAllByCompany(id)
+                );
+
+                model.addAttribute(
+                        "inactiveCustomers",
+                        List.of()
+                );
+
+                model.addAttribute(
+                        "inactiveCarriers",
+                        carrierService.findInactiveByCompany(id)
+                );
+
+            } else {
+
+                model.addAttribute(
+                        "customers",
+                        List.of()
+                );
+
+                model.addAttribute(
+                        "carriers",
+                        List.of()
+                );
+
+                model.addAttribute(
+                        "inactiveCustomers",
+                        List.of()
+                );
+
+                model.addAttribute(
+                        "inactiveCarriers",
+                        List.of()
+                );
+            }
+
+            return "company-form";
+        }
+
         companyService.saveDTO(dto);
 
-        return "redirect:/companies/edit/" + id;
+        return "redirect:/companies";
     }
 
     @PostMapping("/companies/deactivate/{id}")
@@ -232,3 +391,4 @@ public class CompanyController {
         return "redirect:/companies/inactive";
     }
 }
+

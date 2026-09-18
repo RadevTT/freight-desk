@@ -26,7 +26,8 @@ public class CustomerService {
 
     public List<CustomerDTO> findAll() {
 
-        return customerRepository.findAllByActiveTrue()
+        return customerRepository
+                .findAllByActiveTrueAndCompany_ActiveTrue()
                 .stream()
                 .map(customerMapper::toDTO)
                 .toList();
@@ -107,7 +108,6 @@ public class CustomerService {
     }
 
     public List<CustomerDTO> findAllByCompany(UUID companyId) {
-
         return customerRepository
                 .findAllByCompany_IdAndActiveTrue(companyId)
                 .stream()

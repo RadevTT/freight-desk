@@ -8,26 +8,16 @@
   <style>
 
     .deactivate-section {
-        margin-top: 50px;
+        margin-top: 25px;
+        margin-bottom: 40px;
         padding-top: 20px;
         border-top: 1px solid #ccc;
     }
 
-    .modal {
-        display: none;
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-    }
-
-    .modal-content {
-        background: white;
-        width: 400px;
-        margin: 100px auto;
-        padding: 20px;
+    .inactive-section {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #ccc;
     }
 
   </style>
@@ -40,6 +30,8 @@
   Company
 </h1>
 
+
+<!-- COMPANY FORM -->
 
 <form th:action="${company.id == null}
                 ? @{/companies}
@@ -54,13 +46,15 @@
          th:name="${_csrf.parameterName}"
          th:value="${_csrf.token}">
 
-  <input type="hidden" th:field="*{id}">
-
 
   <label>Name:</label>
 
   <input type="text"
          th:field="*{name}">
+
+  <span th:if="${#fields.hasErrors('name')}"
+        th:errors="*{name}">
+  </span>
 
   <br><br>
 
@@ -104,8 +98,15 @@
 
   </select>
 
+  <span th:if="${#fields.hasErrors('type')}"
+        th:errors="*{type}">
+  </span>
+
+  <br><br>
+
 
   <!-- FIRST CONTACT -->
+
   <div th:if="${company.id == null}">
 
     <h2>First contact</h2>
@@ -114,6 +115,10 @@
 
     <input type="text"
            th:field="*{contactName}">
+
+    <span th:if="${#fields.hasErrors('contactName')}"
+          th:errors="*{contactName}">
+    </span>
 
     <br><br>
 
@@ -143,16 +148,40 @@
 </form>
 
 
-<!-- CONTACTS -->
+<!-- EDIT COMPANY ONLY -->
 
 <div th:if="${company.id != null}">
 
-  <h2>Contacts</h2>
+  <!-- DEACTIVATE COMPANY -->
+
+  <div class="deactivate-section">
+
+    <h2>Company</h2>
+
+    <form th:action="@{/companies/deactivate/{id}(id=${company.id})}"
+          method="post">
+
+      <input type="hidden"
+             th:name="${_csrf.parameterName}"
+             th:value="${_csrf.token}">
+
+      <button type="submit">
+        Deactivate Company
+      </button>
+
+    </form>
+
+  </div>
 
 
-  <!-- CUSTOMERS -->
+  <!-- ACTIVE CONTACTS -->
 
-  <div th:if="${company.type.name() == 'CUSTOMER'}">
+  <h2>Active Contacts</h2>
+
+
+  <!-- ACTIVE CUSTOMERS -->
+
+  <div th:if="${company.type != null and company.type.name() == 'CUSTOMER'}">
 
     <table border="1">
 
@@ -186,6 +215,26 @@
             Edit
           </a>
 
+          &nbsp;
+
+          <form th:action="@{/customers/deactivate/{id}(id=${customer.id})}"
+                method="post"
+                style="display:inline;">
+
+            <input type="hidden"
+                   name="companyId"
+                   th:value="${company.id}">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <button type="submit">
+              Deactivate
+            </button>
+
+          </form>
+
         </td>
 
       </tr>
@@ -197,9 +246,9 @@
   </div>
 
 
-  <!-- CARRIERS -->
+  <!-- ACTIVE CARRIERS -->
 
-  <div th:if="${company.type.name() == 'CARRIER'}">
+  <div th:if="${company.type != null and company.type.name() == 'CARRIER'}">
 
     <table border="1">
 
@@ -233,6 +282,26 @@
             Edit
           </a>
 
+          &nbsp;
+
+          <form th:action="@{/carriers/deactivate/{id}(id=${carrier.id})}"
+                method="post"
+                style="display:inline;">
+
+            <input type="hidden"
+                   name="companyId"
+                   th:value="${company.id}">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <button type="submit">
+              Deactivate
+            </button>
+
+          </form>
+
         </td>
 
       </tr>
@@ -246,198 +315,150 @@
 
   <br>
 
-  <a th:href="@{/customers/new}"
-     th:if="${company.type.name() == 'CUSTOMER'}">
+
+  <!-- ADD CONTACT -->
+
+  <a th:href="@{/customers/new(companyId=${company.id})}"
+     th:if="${company.type != null and company.type.name() == 'CUSTOMER'}">
     Add Contact
   </a>
 
 
-  <a th:href="@{/carriers/new}"
-     th:if="${company.type.name() == 'CARRIER'}">
+  <a th:href="@{/carriers/new(companyId=${company.id})}"
+     th:if="${company.type != null and company.type.name() == 'CARRIER'}">
     Add Contact
   </a>
 
 
-  <!-- DEACTIVATE -->
+  <!-- INACTIVE CONTACTS -->
 
-  <div class="deactivate-section">
+  <div class="inactive-section">
 
-    <button type="button"
-            onclick="openDeactivateModal()">
+    <h2>Inactive Contacts</h2>
 
-      Deactivate
 
-    </button>
+    <!-- INACTIVE CUSTOMERS -->
+
+    <div th:if="${company.type != null and company.type.name() == 'CUSTOMER'}">
+
+      <table border="1">
+
+        <thead>
+
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Actions</th>
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr th:each="customer : ${inactiveCustomers}">
+
+          <td th:text="${customer.name}">
+          </td>
+
+          <td th:text="${customer.email}">
+          </td>
+
+          <td th:text="${customer.phone}">
+          </td>
+
+          <td>
+
+            <form th:action="@{/customers/activate/{id}(id=${customer.id})}"
+                  method="post">
+
+              <input type="hidden"
+                     name="companyId"
+                     th:value="${company.id}">
+
+              <input type="hidden"
+                     th:name="${_csrf.parameterName}"
+                     th:value="${_csrf.token}">
+
+              <button type="submit">
+                Activate
+              </button>
+
+            </form>
+
+          </td>
+
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- INACTIVE CARRIERS -->
+
+    <div th:if="${company.type != null and company.type.name() == 'CARRIER'}">
+
+      <table border="1">
+
+        <thead>
+
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Actions</th>
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr th:each="carrier : ${inactiveCarriers}">
+
+          <td th:text="${carrier.name}">
+          </td>
+
+          <td th:text="${carrier.email}">
+          </td>
+
+          <td th:text="${carrier.phone}">
+          </td>
+
+          <td>
+
+            <form th:action="@{/carriers/activate/{id}(id=${carrier.id})}"
+                  method="post">
+
+              <input type="hidden"
+                     name="companyId"
+                     th:value="${company.id}">
+
+              <input type="hidden"
+                     th:name="${_csrf.parameterName}"
+                     th:value="${_csrf.token}">
+
+              <button type="submit">
+                Activate
+              </button>
+
+            </form>
+
+          </td>
+
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
 
   </div>
 
 </div>
-
-
-<!-- DEACTIVATE MODAL -->
-
-<div id="deactivateModal"
-     class="modal">
-
-  <div class="modal-content">
-
-    <h2>Deactivate</h2>
-
-    <p>
-      What do you want to deactivate?
-    </p>
-
-
-    <form method="post"
-          id="deactivateForm">
-
-      <input type="hidden"
-             th:name="${_csrf.parameterName}"
-             th:value="${_csrf.token}">
-
-
-      <label>
-
-        <input type="radio"
-               name="deactivateType"
-               value="company"
-               onclick="selectCompany()">
-
-        Entire company
-
-      </label>
-
-
-      <br><br>
-
-
-      <label>
-
-        <input type="radio"
-               name="deactivateType"
-               value="contact"
-               onclick="selectContact()">
-
-        Contact
-
-      </label>
-
-
-      <br><br>
-
-
-      <select id="contactSelect"
-              style="display:none;">
-
-        <option value="">
-          Select contact
-        </option>
-
-
-        <option th:each="customer : ${customers}"
-                th:value="${customer.id}"
-                th:text="${customer.name}">
-        </option>
-
-
-        <option th:each="carrier : ${carriers}"
-                th:value="${carrier.id}"
-                th:text="${carrier.name}">
-        </option>
-
-      </select>
-
-
-      <br><br>
-
-
-      <button type="button"
-              onclick="closeDeactivateModal()">
-
-        Cancel
-
-      </button>
-
-
-      <button type="submit">
-
-        Deactivate
-
-      </button>
-
-    </form>
-
-  </div>
-
-</div>
-
-
-<script>
-
-  const modal =
-      document.getElementById("deactivateModal");
-
-  const form =
-      document.getElementById("deactivateForm");
-
-  const contactSelect =
-      document.getElementById("contactSelect");
-
-
-  function openDeactivateModal() {
-
-      modal.style.display = "block";
-
-  }
-
-
-  function closeDeactivateModal() {
-
-      modal.style.display = "none";
-
-  }
-
-
-  function selectCompany() {
-
-      contactSelect.style.display = "none";
-
-      form.action =
-          "/companies/deactivate/" +
-          "[[${company.id}]]";
-
-  }
-
-
-  function selectContact() {
-
-      contactSelect.style.display = "block";
-
-      contactSelect.onchange = function () {
-
-          if (!this.value) {
-              return;
-          }
-
-          if ("[[${company.type}]]" === "CUSTOMER") {
-
-              form.action =
-                  "/customers/deactivate/" +
-                  this.value;
-
-          } else {
-
-              form.action =
-                  "/carriers/deactivate/" +
-                  this.value;
-
-          }
-
-      };
-
-  }
-
-</script>
 
 </body>
 

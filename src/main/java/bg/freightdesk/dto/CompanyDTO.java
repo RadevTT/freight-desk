@@ -1,6 +1,8 @@
 package bg.freightdesk.dto;
 
 import bg.freightdesk.model.CompanyType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
@@ -8,6 +10,7 @@ public class CompanyDTO {
 
     private UUID id;
 
+    @NotBlank(message = "Company name is required")
     private String name;
 
     private String companyCode;
@@ -16,9 +19,11 @@ public class CompanyDTO {
 
     private String city;
 
+    @NotNull(message = "Company type is required")
     private CompanyType type;
 
     private boolean active = true;
+
 
     public CompanyDTO() {
     }

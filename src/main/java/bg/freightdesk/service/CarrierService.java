@@ -26,7 +26,8 @@ public class CarrierService {
 
     public List<CarrierDTO> findAll() {
 
-        return carrierRepository.findAllByActiveTrue()
+        return carrierRepository
+                .findAllByActiveTrueAndCompany_ActiveTrue()
                 .stream()
                 .map(carrierMapper::toDTO)
                 .toList();

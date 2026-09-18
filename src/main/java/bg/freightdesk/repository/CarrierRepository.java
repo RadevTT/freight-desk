@@ -15,4 +15,8 @@ public interface CarrierRepository extends JpaRepository<Carrier, UUID> {
     List<Carrier> findAllByCompany_IdAndActiveTrue(UUID companyId);
 
     List<Carrier> findAllByCompany_IdAndActiveFalse(UUID companyId);
+
+    List<Carrier> findAllByActiveTrueAndCompany_ActiveTrue();
+
+    List<Carrier> findAllByCompany_IdAndActiveTrueAndCompany_ActiveTrue(UUID companyId);
 }

@@ -26,8 +26,10 @@ public class CompanyFormDTO {
 
     private String contactPhone;
 
+
     public CompanyFormDTO() {
     }
+
 
     public UUID getId() {
         return id;

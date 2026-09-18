@@ -15,4 +15,8 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     List<Customer> findAllByCompany_IdAndActiveTrue(UUID companyId);
 
     List<Customer> findAllByCompany_IdAndActiveFalse(UUID companyId);
+
+    List<Customer> findAllByActiveTrueAndCompany_ActiveTrue();
+
+    List<Customer> findAllByCompany_IdAndActiveTrueAndCompany_ActiveTrue(UUID companyId);
 }

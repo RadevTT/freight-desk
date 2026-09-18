@@ -1,17 +1,22 @@
 package bg.freightdesk.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.UUID;
 
 public class CarrierDTO {
 
     private UUID id;
 
+    @NotBlank(message = "Carrier name is required")
     private String name;
 
     private String email;
 
     private String phone;
 
+    @NotNull(message = "Company is required")
     private UUID companyId;
 
     private String companyName;
