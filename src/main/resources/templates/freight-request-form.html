@@ -33,46 +33,93 @@
 
   <br><br>
 
-  <!-- CARRIER COMPANY -->
 
-  <label>Carrier company:</label>
+  <!-- CARRIER -->
 
-  <select id="carrierCompany">
+  <h3>Carrier</h3>
 
-    <option value="">Select company</option>
+  <!--
+      SELECTED OFFER EXISTS
+      Carrier is controlled by the selected offer.
+  -->
 
-    <option th:each="company : ${carrierCompanies}"
-            th:value="${company.id}"
-            th:text="${company.name}"
-            th:selected="${company.id == selectedCarrierCompanyId}">
-    </option>
+  <div th:if="${isEdit and selectedOffer != null}">
 
-  </select>
+    <p>
+      <strong>Selected carrier company:</strong>
+      <span th:text="${selectedOffer.companyName}"></span>
+    </p>
 
-  <br><br>
+    <p>
+      <strong>Selected carrier contact:</strong>
+      <span th:text="${selectedOffer.carrierName != null
+                      ? selectedOffer.carrierName
+                      : 'No contact selected'}"></span>
+    </p>
 
-  <!-- CARRIER CONTACT -->
+    <p>
+      <strong>Carrier price:</strong>
+      <span th:text="${selectedOffer.offeredPrice}"></span>
+      <span th:text="${selectedOffer.currency}"></span>
+    </p>
 
-  <div id="carrierContactContainer"
-       th:style="${selectedCarrierCompanyId != null} ? 'display: block;' : 'display: none;'">
+    <a th:href="@{/freight-requests/{id}/offers(id=${freightRequest.id})}">
+      View / Change carrier offer
+    </a>
 
-    <label>Contact:</label>
+  </div>
 
-    <select id="carrierContact"
-            th:field="*{carrierId}">
 
-      <option value="">Select contact</option>
+  <!--
+      NO SELECTED OFFER
+      Carrier can be entered manually.
+  -->
 
-      <option th:each="carrier : ${carrierContacts}"
-              th:value="${carrier.id}"
-              th:text="${carrier.name}">
+  <div th:unless="${isEdit and selectedOffer != null}">
+
+    <label>Carrier company:</label>
+
+    <select id="carrierCompany">
+
+      <option value="">Select company</option>
+
+      <option th:each="company : ${carrierCompanies}"
+              th:value="${company.id}"
+              th:text="${company.name}"
+              th:selected="${company.id == selectedCarrierCompanyId}">
       </option>
 
     </select>
 
+    <br><br>
+
+    <!-- CARRIER CONTACT -->
+
+    <div id="carrierContactContainer"
+         th:style="${selectedCarrierCompanyId != null}
+                  ? 'display: block;'
+                  : 'display: none;'">
+
+      <label>Contact:</label>
+
+      <select id="carrierContact"
+              th:field="*{carrierId}">
+
+        <option value="">Select contact</option>
+
+        <option th:each="carrier : ${carrierContacts}"
+                th:value="${carrier.id}"
+                th:text="${carrier.name}">
+        </option>
+
+      </select>
+
+    </div>
+
   </div>
 
   <br><br>
+
 
   <!-- REQUEST DATE -->
 
@@ -80,9 +127,15 @@
 
   <input type="date"
          name="requestDate"
-         th:value="${freightRequest.requestDate != null ? #temporals.format(freightRequest.requestDate, 'yyyy-MM-dd') : ''}">
+         th:value="${freightRequest.requestDate != null
+                    ? #temporals.format(
+                        freightRequest.requestDate,
+                        'yyyy-MM-dd'
+                      )
+                    : ''}">
 
   <br><br>
+
 
   <!-- LOADING DATE -->
 
@@ -90,9 +143,15 @@
 
   <input type="date"
          name="loadingDate"
-         th:value="${freightRequest.loadingDate != null ? #temporals.format(freightRequest.loadingDate, 'yyyy-MM-dd') : ''}">
+         th:value="${freightRequest.loadingDate != null
+                    ? #temporals.format(
+                        freightRequest.loadingDate,
+                        'yyyy-MM-dd'
+                      )
+                    : ''}">
 
   <br><br>
+
 
   <!-- DELIVERY TIME -->
 
@@ -123,6 +182,7 @@
 
   </script>
 
+
   <!-- LOADING -->
 
   <h3>Loading</h3>
@@ -152,6 +212,7 @@
 
   <br><br>
 
+
   <!-- UNLOADING -->
 
   <h3>Unloading</h3>
@@ -180,6 +241,7 @@
          th:field="*{unloadingPostalCode}">
 
   <br><br>
+
 
   <!-- CARGO -->
 
@@ -218,6 +280,7 @@
 
   <br><br>
 
+
   <!-- CARGO TYPE -->
 
   <label>Cargo type:</label>
@@ -240,6 +303,7 @@
 
   <br><br>
 
+
   <!-- SPEDITOR -->
 
   <h3>Speditor</h3>
@@ -258,6 +322,7 @@
          size="60">
 
   <br><br>
+
 
   <!-- VEHICLE / TRANSPORT REQUIREMENTS -->
 
@@ -415,9 +480,12 @@
 
   <br><br>
 
+
   <!-- PRICES -->
 
   <h3>Prices</h3>
+
+  <!-- CLIENT PRICE -->
 
   <label>Client price:</label>
 
@@ -427,13 +495,55 @@
 
   <br><br>
 
-  <label>Carrier price:</label>
 
-  <input type="number"
-         step="0.01"
-         th:field="*{carrierPrice}">
+  <!-- CARRIER PRICE -->
+
+  <!--
+      SELECTED OFFER EXISTS
+  -->
+
+  <div th:if="${isEdit and selectedOffer != null}">
+
+    <div th:if="${isEdit and selectedOffer != null}">
+
+      <label>Carrier price:</label>
+
+      <strong>
+        <span th:text="${selectedOffer.offeredPrice}"></span>
+        <span th:text="${selectedOffer.currency}"></span>
+      </strong>
+
+      <br>
+
+      <small>
+        Price comes from the selected carrier offer.
+      </small>
+
+      <br>
+
+      <a th:href="@{/freight-requests/{id}/offers(id=${freightRequest.id})}">
+        Edit carrier offer
+      </a>
+
+    </div>
+
+
+  <!--
+      NO SELECTED OFFER
+  -->
+
+  <div th:unless="${isEdit and selectedOffer != null}">
+
+    <label>Carrier price:</label>
+
+    <input type="number"
+           step="0.01"
+           th:field="*{carrierPrice}">
+
+  </div>
 
   <br><br>
+
 
   <!-- STATUS -->
 
@@ -452,7 +562,12 @@
 
   <br><br>
 
-  <button type="submit">Save</button>
+
+  <!-- SAVE -->
+
+  <button type="submit">
+    Save
+  </button>
 
 </form>
 
@@ -471,50 +586,54 @@
       document.getElementById("carrierContact");
 
 
-  companySelect.addEventListener("change", function () {
+  if (companySelect) {
 
-      const companyId = this.value;
+      companySelect.addEventListener("change", function () {
 
-      contactSelect.innerHTML =
-          '<option value="">Select contact</option>';
+          const companyId = this.value;
 
-
-      if (!companyId) {
-
-          contactContainer.style.display = "none";
-
-          return;
-      }
+          contactSelect.innerHTML =
+              '<option value="">Select contact</option>';
 
 
-      fetch(
-          "/freight-requests/carriers?companyId="
-          + companyId
-      )
-      .then(response => response.json())
-      .then(carriers => {
+          if (!companyId) {
 
-          carriers.forEach(carrier => {
+              contactContainer.style.display = "none";
 
-              const option =
-                  document.createElement("option");
+              return;
+          }
 
-              option.value =
-                  carrier.id;
 
-              option.textContent =
-                  carrier.name;
+          fetch(
+              "/freight-requests/carriers?companyId="
+              + companyId
+          )
+          .then(response => response.json())
+          .then(carriers => {
 
-              contactSelect.appendChild(
-                  option
-              );
+              carriers.forEach(carrier => {
+
+                  const option =
+                      document.createElement("option");
+
+                  option.value =
+                      carrier.id;
+
+                  option.textContent =
+                      carrier.name;
+
+                  contactSelect.appendChild(
+                      option
+                  );
+              });
+
+
+              contactContainer.style.display = "block";
           });
 
-
-          contactContainer.style.display = "block";
       });
 
-  });
+  }
 
 </script>
 

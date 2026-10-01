@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Carrier Offer</title>
+</head>
+
+<body>
+
+<h1>Edit Carrier Offer</h1>
+
+<form th:action="@{/carrier-offers/{id}(id=${carrierOffer.id})}"
+      th:object="${carrierOffer}"
+      method="post">
+
+    <input type="hidden"
+           th:field="*{id}">
+
+    <input type="hidden"
+           th:field="*{freightRequestId}">
+
+    <!-- CARRIER COMPANY -->
+
+    <label>Carrier company:</label>
+
+    <select id="carrierCompany"
+            th:field="*{companyId}">
+
+        ```
+        <option value="">
+            Select company
+        </option>
+
+        <option th:each="company : ${carrierCompanies}"
+                th:value="${company.id}"
+                th:text="${company.name}">
+        </option>
+        ```
+
+    </select>
+
+    <br><br>
+
+    <!-- CARRIER CONTACT -->
+
+    <div id="carrierContactContainer"
+         th:style="${carrierOffer.companyId != null}
+                 ? 'display: block;'
+                 : 'display: none;'">
+
+        ```
+        <label>Carrier contact:</label>
+
+        <select id="carrierContact"
+                th:field="*{carrierId}">
+
+            <option value="">
+                -- No Contact --
+            </option>
+
+            <option th:each="carrier : ${carrierContacts}"
+                    th:value="${carrier.id}"
+                    th:text="${carrier.name}">
+            </option>
+
+        </select>
+        ```
+
+    </div>
+
+    <br>
+
+    <!-- OFFERED PRICE -->
+
+    <label>Offered Price:</label>
+
+    <input type="number"
+           step="0.01"
+           th:field="*{offeredPrice}"
+           required>
+
+    <br><br>
+
+    <!-- CURRENCY -->
+
+    <label>Currency:</label>
+
+    <select th:field="*{currency}">
+
+        ```
+        <option value="EUR">EUR</option>
+        <option value="BGN">BGN</option>
+        <option value="USD">USD</option>
+        ```
+
+    </select>
+
+    <br><br>
+
+    <!-- NOTE -->
+
+    <label>Note:</label>
+
+    <input type="text"
+           th:field="*{note}"
+           size="50">
+
+    <br><br>
+
+    <button type="submit">
+        Save
+    </button>
+
+</form>
+
+<br>
+
+<a th:href="@{/freight-requests/{id}/offers(id=${carrierOffer.freightRequestId})}">
+    Back to Carrier Offers
+</a>
+
+<script>
+
+    const carrierCompany =
+        document.getElementById("carrierCompany");
+
+    const carrierContact =
+        document.getElementById("carrierContact");
+
+    const carrierContactContainer =
+        document.getElementById("carrierContactContainer");
+
+
+    carrierCompany.addEventListener("change", function () {
+
+      const companyId = this.value;
+
+
+      carrierContact.innerHTML =
+          '<option value="">-- No Contact --</option>';
+
+
+      if (companyId === "") {
+
+        carrierContactContainer.style.display = "none";
+
+        return;
+      }
+
+
+      fetch(
+          "/carrier-offers/carriers?companyId="
+          + companyId
+      )
+
+          .then(response => {
+
+            if (!response.ok) {
+              throw new Error(
+                  "Failed to load carrier contacts"
+              );
+            }
+
+            return response.json();
+          })
+
+          .then(carriers => {
+
+            carriers.forEach(carrier => {
+
+              const option =
+                  document.createElement("option");
+
+              option.value =
+                  carrier.id;
+
+              option.textContent =
+                  carrier.name;
+
+              carrierContact.appendChild(option);
+
+            });
+
+            carrierContactContainer.style.display =
+                "block";
+
+          })
+
+          .catch(error => {
+
+            console.error(error);
+
+            carrierContactContainer.style.display =
+                "none";
+
+          });
+
+    });
+
+</script>
+
+</body>
+
+</html>

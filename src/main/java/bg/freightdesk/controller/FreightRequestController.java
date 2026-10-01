@@ -1,6 +1,7 @@
 package bg.freightdesk.controller;
 
 import bg.freightdesk.dto.CarrierDTO;
+import bg.freightdesk.dto.CarrierOfferDTO;
 import bg.freightdesk.dto.FreightRequestDTO;
 import bg.freightdesk.model.CompanyType;
 import bg.freightdesk.service.*;
@@ -20,6 +21,7 @@ public class FreightRequestController {
     private final CompanyService companyService;
     private final SpeditorBrowserService speditorBrowserService;
     private final CountryService countryService;
+    private final CarrierOfferService carrierOfferService;
 
     public FreightRequestController(
             FreightRequestService freightRequestService,
@@ -27,7 +29,8 @@ public class FreightRequestController {
             CarrierService carrierService,
             CompanyService companyService,
             SpeditorBrowserService speditorBrowserService,
-            CountryService countryService) {
+            CountryService countryService,
+            CarrierOfferService carrierOfferService) {
 
         this.freightRequestService = freightRequestService;
         this.customerService = customerService;
@@ -35,6 +38,7 @@ public class FreightRequestController {
         this.companyService = companyService;
         this.speditorBrowserService = speditorBrowserService;
         this.countryService = countryService;
+        this.carrierOfferService = carrierOfferService;
     }
 
     @GetMapping("/freight-requests")
@@ -84,6 +88,16 @@ public class FreightRequestController {
         model.addAttribute(
                 "countries",
                 countryService.findAll()
+        );
+
+        model.addAttribute(
+                "isEdit",
+                false
+        );
+
+        model.addAttribute(
+                "selectedOffer",
+                null
         );
 
         return "freight-request-form";
@@ -158,9 +172,22 @@ public class FreightRequestController {
             );
         }
 
+        CarrierOfferDTO selectedOffer =
+                carrierOfferService.findSelectedByFreightRequestId(id);
+
+        model.addAttribute(
+                "selectedOffer",
+                selectedOffer
+        );
+
         model.addAttribute(
                 "countries",
                 countryService.findAll()
+        );
+
+        model.addAttribute(
+                "isEdit",
+                true
         );
 
         return "freight-request-form";

@@ -14,6 +14,10 @@ public class CarrierOfferDTO {
 
     private UUID carrierId;
 
+    private String companyName;
+
+    private String carrierName;
+
     private BigDecimal offeredPrice;
 
     private String currency;
@@ -97,5 +101,21 @@ public class CarrierOfferDTO {
 
     public void setCompanyId(UUID companyId) {
         this.companyId = companyId;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getCarrierName() {
+        return carrierName;
+    }
+
+    public void setCarrierName(String carrierName) {
+        this.carrierName = carrierName;
     }
 }

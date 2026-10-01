@@ -43,9 +43,17 @@ public class CarrierOfferMapper {
                 entity.getCompany().getId()
         );
 
+        dto.setCompanyName(
+                entity.getCompany().getName()
+        );
+
         if (entity.getCarrier() != null) {
             dto.setCarrierId(
                     entity.getCarrier().getId()
+            );
+
+            dto.setCarrierName(
+                    entity.getCarrier().getName()
             );
         }
 

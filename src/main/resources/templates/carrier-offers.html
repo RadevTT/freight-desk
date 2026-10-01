@@ -1,10 +1,8 @@
 <!DOCTYPE html>
+
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-  <meta charset="UTF-8">
-  <title>Carrier Offers</title>
-</head>
+<head> <meta charset="UTF-8"> <title>Carrier Offers</title> </head>
 
 <body>
 
@@ -12,54 +10,45 @@
 
 <h2>Freight Request</h2>
 
-<p>
-  <strong>From:</strong>
-  <span th:text="${freightRequest.loadingCountry}"></span>
-  <span th:text="${freightRequest.loadingCity}"></span>
-</p>
+<p> <strong>From:</strong> <span th:text="${freightRequest.loadingCountry}"></span> <span th:text="${freightRequest.loadingCity}"></span> </p>
 
-<p>
-  <strong>To:</strong>
-  <span th:text="${freightRequest.unloadingCountry}"></span>
-  <span th:text="${freightRequest.unloadingCity}"></span>
-</p>
+<p> <strong>To:</strong> <span th:text="${freightRequest.unloadingCountry}"></span> <span th:text="${freightRequest.unloadingCity}"></span> </p>
 
-<p>
-  <strong>Loading date:</strong>
-  <span th:text="${freightRequest.loadingDate}"></span>
-</p>
-
+<p> <strong>Loading date:</strong> <span th:text="${freightRequest.loadingDate}"></span> </p>
 
 <hr>
-
 
 <h2>Existing Offers</h2>
 
 <table border="1">
 
-  <thead>
-  <tr>
-    <th>Carrier Company</th>
-    <th>Contact</th>
-    <th>Price</th>
-    <th>Currency</th>
-    <th>Date</th>
-    <th>Note</th>
-    <th>Selected</th>
-    <th>Action</th>
-  </tr>
-  </thead>
+  <thead> <tr> <th>Carrier Company</th> <th>Contact</th> <th>Price</th> <th>Currency</th> <th>Date</th> <th>Note</th> <th>Selected</th> <th>Action</th> </tr> </thead>
 
   <tbody>
 
   <tr th:each="offer : ${offers}">
 
-    <td th:text="${offer.companyId}">
-      Company
+    <td>
+      <a href="#"
+         th:text="${offer.companyName}"
+         th:attr="data-company-id=${offer.companyId}"
+         onclick="showCompany(this); return false;">
+        Company
+      </a>
     </td>
 
-    <td th:text="${offer.carrierId}">
-      Contact
+    <td>
+      <a th:if="${offer.carrierId != null}"
+         href="#"
+         th:text="${offer.carrierName}"
+         th:attr="data-carrier-id=${offer.carrierId}"
+         onclick="showContact(this); return false;">
+        Contact
+      </a>
+
+      <span th:if="${offer.carrierId == null}">
+    No Contact
+  </span>
     </td>
 
     <td th:text="${offer.offeredPrice}">
@@ -83,9 +72,28 @@
     </td>
 
     <td>
+
+      <a th:if="${!offer.selected}"
+         th:href="@{/carrier-offers/{id}/select(id=${offer.id})}">
+        Select
+      </a>
+
+      <span th:if="${offer.selected}">
+    Selected
+  </span>
+
+      |
+
+      <a th:href="@{/carrier-offers/{id}/edit(id=${offer.id})}">
+        Edit
+      </a>
+
+      |
+
       <a th:href="@{/carrier-offers/{id}/delete(id=${offer.id})}">
         Delete
       </a>
+
     </td>
 
   </tr>
@@ -94,15 +102,51 @@
 
 </table>
 
+<div id="companyModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid black; padding: 20px; min-width: 300px; z-index: 1000;">
+
+  <h3>Company Details</h3>
+
+  <p> <strong>Name:</strong> <span id="companyName"></span> </p>
+
+  <p> <strong>Company Code:</strong> <span id="companyCode"></span> </p>
+
+  <p> <strong>Type:</strong> <span id="companyType"></span> </p>
+
+  <p> <strong>Country:</strong> <span id="companyCountry"></span> </p>
+
+  <p> <strong>City:</strong> <span id="companyCity"></span> </p>
+
+  <p> <strong>Active:</strong> <span id="companyActive"></span> </p>
+
+  <button type="button" onclick="closeCompany()">
+    Close
+  </button>
+
+</div>
+
+<div id="contactModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid black; padding: 20px; min-width: 300px; z-index: 1000;">
+
+  <h3>Contact Details</h3>
+
+  <p> <strong>Name:</strong> <span id="contactName"></span> </p>
+
+  <p> <strong>Email:</strong> <span id="contactEmail"></span> </p>
+
+  <p> <strong>Phone:</strong> <span id="contactPhone"></span> </p>
+
+  <p> <strong>Active:</strong> <span id="contactActive"></span> </p>
+
+  <button type="button" onclick="closeContact()">
+    Close
+  </button>
+
+</div>
 
 <hr>
 
-
 <h2>Add Carrier Offer</h2>
 
-<form th:action="@{/freight-requests/{id}/offers(id=${freightRequest.id})}"
-      th:object="${carrierOffer}"
-      method="post">
+<form th:action="@{/freight-requests/{id}/offers(id=${freightRequest.id})}" th:object="${carrierOffer}" method="post">
 
   <div>
 
@@ -126,9 +170,7 @@
 
   <br>
 
-
-  <div id="carrierContactContainer"
-       style="display: none;">
+  <div id="carrierContactContainer" style="display: none;">
 
     <label>Carrier contact:</label>
 
@@ -150,7 +192,6 @@
 
   <br>
 
-
   <div>
 
     <label>Offered Price:</label>
@@ -163,7 +204,6 @@
   </div>
 
   <br>
-
 
   <div>
 
@@ -181,7 +221,6 @@
 
   <br>
 
-
   <div>
 
     <label>Note:</label>
@@ -194,60 +233,15 @@
 
   <br>
 
-
-  <button type="submit">
-    Add Offer
-  </button>
+  <button type="submit"> Add Offer </button>
 
 </form>
 
-
 <br>
 
-<a th:href="@{/freight-requests}">
-  Back to Freight Requests
-</a>
+<a th:href="@{/freight-requests}"> Back to Freight Requests </a>
 
-<script>
-
-  const carrierCompany = document.getElementById("carrierCompany");
-  const carrierContact = document.getElementById("carrierContact");
-  const carrierContactContainer =
-      document.getElementById("carrierContactContainer");
-
-  carrierCompany.addEventListener("change", function () {
-
-    const companyId = this.value;
-
-    carrierContact.innerHTML =
-        '<option value="">-- No Contact --</option>';
-
-    if (companyId === "") {
-
-      carrierContactContainer.style.display = "none";
-
-      return;
-    }
-
-    fetch("/carrier-offers/carriers?companyId=" + companyId)
-        .then(response => response.json())
-        .then(carriers => {
-
-          carriers.forEach(carrier => {
-
-            const option = document.createElement("option");
-
-            option.value = carrier.id;
-            option.textContent = carrier.name;
-
-            carrierContact.appendChild(option);
-          });
-
-          carrierContactContainer.style.display = "block";
-        });
-  });
-
-</script>
+<script> const carrierCompany = document.getElementById("carrierCompany"); const carrierContact = document.getElementById("carrierContact"); const carrierContactContainer = document.getElementById("carrierContactContainer"); carrierCompany.addEventListener("change", function () { const companyId = this.value; carrierContact.innerHTML = '<option value="">-- No Contact --</option>'; if (companyId === "") { carrierContactContainer.style.display = "none"; return; } fetch("/carrier-offers/carriers?companyId=" + companyId) .then(response => { if (!response.ok) { throw new Error("Failed to load carrier contacts"); } return response.json(); }) .then(carriers => { carriers.forEach(carrier => { const option = document.createElement("option"); option.value = carrier.id; option.textContent = carrier.name; carrierContact.appendChild(option); }); carrierContactContainer.style.display = "block"; }) .catch(error => { console.error(error); carrierContactContainer.style.display = "none"; }); }); function showCompany(element) { document.getElementById("contactModal").style.display = "none"; const companyId = element.getAttribute("data-company-id"); fetch("/carrier-offers/company?companyId=" + companyId) .then(response => { if (!response.ok) { throw new Error("Failed to load company"); } return response.json(); }) .then(company => { document.getElementById("companyName").textContent = company.name; document.getElementById("companyCode").textContent = company.companyCode; document.getElementById("companyType").textContent = company.type; document.getElementById("companyCountry").textContent = company.country; document.getElementById("companyCity").textContent = company.city; document.getElementById("companyActive").textContent = company.active ? "Yes" : "No"; document.getElementById("companyModal").style.display = "block"; }) .catch(error => { console.error(error); alert("Could not load company details"); }); } function closeCompany() { document.getElementById("companyModal").style.display = "none"; } function showContact(element) { document.getElementById("companyModal").style.display = "none"; const carrierId = element.getAttribute("data-carrier-id"); fetch("/carrier-offers/contact?carrierId=" + carrierId) .then(response => { if (!response.ok) { throw new Error("Failed to load contact"); } return response.json(); }) .then(contact => { document.getElementById("contactName").textContent = contact.name; document.getElementById("contactEmail").textContent = contact.email; document.getElementById("contactPhone").textContent = contact.phone; document.getElementById("contactActive").textContent = contact.active ? "Yes" : "No"; document.getElementById("contactModal").style.display = "block"; }) .catch(error => { console.error(error); alert("Could not load contact details"); }); } function closeContact() { document.getElementById("contactModal").style.display = "none"; } </script>
 
 </body>
 

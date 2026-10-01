@@ -11,4 +11,6 @@ public interface CarrierOfferRepository extends JpaRepository<CarrierOffer, UUID
     List<CarrierOffer> findByFreightRequestId(UUID freightRequestId);
 
     void deleteByFreightRequestId(UUID freightRequestId);
+
+    CarrierOffer findByFreightRequestIdAndSelectedTrue(UUID freightRequestId);
 }
