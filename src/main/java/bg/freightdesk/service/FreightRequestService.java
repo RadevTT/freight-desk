@@ -94,10 +94,6 @@ public class FreightRequestService {
             freightRequest.setCarrierPrice(
                     selectedOffer.getOfferedPrice()
             );
-
-            freightRequest.setStatus(
-                    RequestStatus.CONFIRMED
-            );
         }
 
         calculateProfit(freightRequest);
@@ -177,6 +173,22 @@ public class FreightRequestService {
     }
 
     @Transactional
+    public void updateStatus(UUID id, RequestStatus status) {
+
+        FreightRequest freightRequest =
+                freightRequestRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Freight request not found"
+                                )
+                        );
+
+        freightRequest.setStatus(status);
+
+        freightRequestRepository.save(freightRequest);
+    }
+
+    @Transactional
     public void deleteCarrierOffer(UUID offerId) {
 
         CarrierOffer offer =
@@ -195,8 +207,9 @@ public class FreightRequestService {
             freightRequest.setCarrier(null);
             freightRequest.setCarrierPrice(null);
             freightRequest.setProfit(null);
+
             freightRequest.setStatus(
-                    RequestStatus.WAITING_FOR_RESPONSE
+                    RequestStatus.OFFER_SENT
             );
 
             freightRequestRepository.save(freightRequest);

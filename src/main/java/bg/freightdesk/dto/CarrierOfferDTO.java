@@ -28,6 +28,7 @@ public class CarrierOfferDTO {
 
     private boolean selected;
 
+
     public CarrierOfferDTO() {
     }
 

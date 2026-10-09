@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
@@ -504,28 +505,26 @@
 
   <div th:if="${isEdit and selectedOffer != null}">
 
-    <div th:if="${isEdit and selectedOffer != null}">
+    <label>Carrier price:</label>
 
-      <label>Carrier price:</label>
+    <strong>
+      <span th:text="${selectedOffer.offeredPrice}"></span>
+      <span th:text="${selectedOffer.currency}"></span>
+    </strong>
 
-      <strong>
-        <span th:text="${selectedOffer.offeredPrice}"></span>
-        <span th:text="${selectedOffer.currency}"></span>
-      </strong>
+    <br>
 
-      <br>
+    <small>
+      Price comes from the selected carrier offer.
+    </small>
 
-      <small>
-        Price comes from the selected carrier offer.
-      </small>
+    <br>
 
-      <br>
+    <a th:href="@{/freight-requests/{id}/offers(id=${freightRequest.id})}">
+      Edit carrier offer
+    </a>
 
-      <a th:href="@{/freight-requests/{id}/offers(id=${freightRequest.id})}">
-        Edit carrier offer
-      </a>
-
-    </div>
+  </div>
 
 
   <!--
@@ -625,10 +624,12 @@
                   contactSelect.appendChild(
                       option
                   );
+
               });
 
 
               contactContainer.style.display = "block";
+
           });
 
       });
@@ -640,3 +641,4 @@
 
 </body>
 </html>
+

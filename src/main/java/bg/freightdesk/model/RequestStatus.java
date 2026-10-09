@@ -4,8 +4,9 @@ public enum RequestStatus {
 
     NEW,
     OFFER_SENT,
-    WAITING_FOR_RESPONSE,
     CONFIRMED,
+    LOADED,
+    DELIVERED,
     REJECTED,
     NO_RESPONSE
 }

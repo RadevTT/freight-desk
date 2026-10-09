@@ -153,8 +153,6 @@ public class CarrierOfferController {
 
         carrierOfferService.selectOffer(id);
 
-        freightRequestService.selectCarrierOffer(id);
-
         return "redirect:/freight-requests/"
                 + freightRequestId
                 + "/offers";

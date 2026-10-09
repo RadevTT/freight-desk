@@ -3,19 +3,24 @@ package bg.freightdesk.controller;
 import bg.freightdesk.dto.CarrierDTO;
 import bg.freightdesk.dto.CarrierOfferDTO;
 import bg.freightdesk.dto.FreightRequestDTO;
+import bg.freightdesk.entity.FreightDocument;
 import bg.freightdesk.model.CompanyType;
+import bg.freightdesk.model.RequestStatus;
 import bg.freightdesk.service.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
 public class FreightRequestController {
 
     private final FreightRequestService freightRequestService;
+    private final FreightDocumentService freightDocumentService;
     private final CustomerService customerService;
     private final CarrierService carrierService;
     private final CompanyService companyService;
@@ -25,6 +30,7 @@ public class FreightRequestController {
 
     public FreightRequestController(
             FreightRequestService freightRequestService,
+            FreightDocumentService freightDocumentService,
             CustomerService customerService,
             CarrierService carrierService,
             CompanyService companyService,
@@ -33,6 +39,7 @@ public class FreightRequestController {
             CarrierOfferService carrierOfferService) {
 
         this.freightRequestService = freightRequestService;
+        this.freightDocumentService = freightDocumentService;
         this.customerService = customerService;
         this.carrierService = carrierService;
         this.companyService = companyService;
@@ -50,6 +57,22 @@ public class FreightRequestController {
         model.addAttribute(
                 "freightRequests",
                 freightRequests
+        );
+
+        Map<UUID, List<FreightDocument>> documentsByRequestId =
+                new HashMap<>();
+
+        for (FreightRequestDTO request : freightRequests) {
+
+            documentsByRequestId.put(
+                    request.getId(),
+                    freightDocumentService.getDocuments(request.getId())
+            );
+        }
+
+        model.addAttribute(
+                "documentsByRequestId",
+                documentsByRequestId
         );
 
         return "freight-requests";
@@ -108,6 +131,16 @@ public class FreightRequestController {
             @ModelAttribute FreightRequestDTO dto) {
 
         freightRequestService.saveDTO(dto);
+
+        return "redirect:/freight-requests";
+    }
+
+    @PostMapping("/freight-requests/{id}/status")
+    public String updateStatus(
+            @PathVariable UUID id,
+            @RequestParam RequestStatus status) {
+
+        freightRequestService.updateStatus(id, status);
 
         return "redirect:/freight-requests";
     }

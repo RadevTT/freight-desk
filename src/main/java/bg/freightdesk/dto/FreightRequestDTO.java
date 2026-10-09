@@ -54,6 +54,8 @@ public class FreightRequestDTO {
 
     private String status;
 
+    private boolean newOfferAvailable;
+
     private boolean trailer;
     private boolean hanger;
     private boolean refrigerated;
@@ -273,6 +275,11 @@ public class FreightRequestDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+
+    public void setNewOfferAvailable(boolean newOfferAvailable) {
+        this.newOfferAvailable = newOfferAvailable;
     }
 
     public boolean isTrailer() {
