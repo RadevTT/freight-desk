@@ -1,12 +1,18 @@
+
 package bg.freightdesk.service;
 
 import bg.freightdesk.dto.FreightRequestDTO;
 import bg.freightdesk.entity.CarrierOffer;
-import bg.freightdesk.model.RequestStatus;
 import bg.freightdesk.entity.FreightRequest;
+import bg.freightdesk.entity.User;
 import bg.freightdesk.mapper.FreightRequestMapper;
+import bg.freightdesk.model.RequestStatus;
 import bg.freightdesk.repository.CarrierOfferRepository;
 import bg.freightdesk.repository.FreightRequestRepository;
+import bg.freightdesk.repository.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,200 +25,204 @@ public class FreightRequestService {
     private final FreightRequestRepository freightRequestRepository;
     private final FreightRequestMapper freightRequestMapper;
     private final CarrierOfferRepository carrierOfferRepository;
+    private final UserRepository userRepository;
 
     public FreightRequestService(
             FreightRequestRepository freightRequestRepository,
             FreightRequestMapper freightRequestMapper,
-            CarrierOfferRepository carrierOfferRepository) {
+            CarrierOfferRepository carrierOfferRepository,
+            UserRepository userRepository) {
 
         this.freightRequestRepository = freightRequestRepository;
         this.freightRequestMapper = freightRequestMapper;
         this.carrierOfferRepository = carrierOfferRepository;
+        this.userRepository = userRepository;
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() ->
+                        new AccessDeniedException("Current user not found"));
+    }
+
+    private boolean isAdmin(User user) {
+        return user.getRole() != null
+                && "ADMIN".equals(user.getRole().name());
+    }
+
+    private boolean canAccess(FreightRequest request, User currentUser) {
+        User owner = request.getForwarder();
+
+        // Старите заявки без собственик не се предоставят автоматично.
+        if (owner == null
+                || owner.getOrganization() == null
+                || currentUser.getOrganization() == null) {
+            return false;
+        }
+
+        // Потребителите от друга организация нямат достъп.
+        if (!owner.getOrganization().getId()
+                .equals(currentUser.getOrganization().getId())) {
+            return false;
+        }
+
+        // Администраторът вижда заявките в собствената си организация.
+        if (isAdmin(currentUser)) {
+            return true;
+        }
+
+        // Собственикът винаги има достъп до собствената си заявка.
+        if (owner.getId().equals(currentUser.getId())) {
+            return true;
+        }
+
+        // Колегите имат достъп само при разрешено споделяне.
+        return owner.isVisibleToColleagues();
+    }
+
+    private FreightRequest getAccessibleRequest(UUID id) {
+        FreightRequest request = freightRequestRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Freight request not found"));
+
+        if (!canAccess(request, getCurrentUser())) {
+            throw new AccessDeniedException(
+                    "You do not have access to this freight request");
+        }
+
+        return request;
     }
 
     public List<FreightRequestDTO> findAll() {
+        User currentUser = getCurrentUser();
 
         return freightRequestRepository.findAll()
                 .stream()
+                .filter(request -> canAccess(request, currentUser))
                 .map(freightRequestMapper::toDTO)
                 .toList();
     }
 
     public FreightRequestDTO findDTOById(UUID id) {
-
-        FreightRequest freightRequest =
-                freightRequestRepository.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Freight request not found"
-                                )
-                        );
-
-        return freightRequestMapper.toDTO(freightRequest);
+        FreightRequest request = getAccessibleRequest(id);
+        return freightRequestMapper.toDTO(request);
     }
 
     @Transactional
     public void saveDTO(FreightRequestDTO dto) {
+        User currentUser = getCurrentUser();
 
-        FreightRequest freightRequest =
-                freightRequestMapper.toEntity(dto);
-
-        /*
-         * NEW FREIGHT REQUEST
-         *
-         * When dto.getId() == null, this is a new request.
-         * Carrier and carrier price can be entered manually.
-         */
         if (dto.getId() == null) {
+            FreightRequest request = freightRequestMapper.toEntity(dto);
 
-            calculateProfit(freightRequest);
+            // Собственикът се определя от влезлия потребител.
+            request.setForwarder(currentUser);
 
-            freightRequestRepository.save(freightRequest);
+            if (request.getStatus() == null) {
+                request.setStatus(RequestStatus.NEW);
+            }
 
+            calculateProfit(request);
+            freightRequestRepository.save(request);
             return;
         }
 
-        /*
-         * EXISTING FREIGHT REQUEST
-         */
+        // Проверяваме правата преди редакция.
+        FreightRequest existingRequest = getAccessibleRequest(dto.getId());
+
+        FreightRequest updatedRequest = freightRequestMapper.toEntity(dto);
+
+        // Не позволяваме смяна на собственика чрез формата.
+        updatedRequest.setForwarder(existingRequest.getForwarder());
+
         CarrierOffer selectedOffer =
-                carrierOfferRepository
-                        .findByFreightRequestIdAndSelectedTrue(
-                                dto.getId()
-                        );
+                carrierOfferRepository.findByFreightRequestIdAndSelectedTrue(
+                        dto.getId());
 
-        /*
-         * If there is a selected carrier offer,
-         * it is the source of truth for carrier and carrier price.
-         */
+        // Запазваме избраната оферта като източник на цената.
         if (selectedOffer != null) {
-
-            freightRequest.setCarrier(
-                    selectedOffer.getCarrier()
-            );
-
-            freightRequest.setCarrierPrice(
-                    selectedOffer.getOfferedPrice()
-            );
+            updatedRequest.setCarrier(selectedOffer.getCarrier());
+            updatedRequest.setCarrierPrice(selectedOffer.getOfferedPrice());
         }
 
-        calculateProfit(freightRequest);
+        // Ако формата не е изпратила статус, запазваме стария.
+        if (dto.getStatus() == null || dto.getStatus().isBlank()) {
+            updatedRequest.setStatus(existingRequest.getStatus());
+        }
 
-        freightRequestRepository.save(freightRequest);
+        calculateProfit(updatedRequest);
+        freightRequestRepository.save(updatedRequest);
     }
 
-    private void calculateProfit(
-            FreightRequest freightRequest) {
-
-        if (freightRequest.getClientPrice() != null
-                && freightRequest.getCarrierPrice() != null) {
-
-            freightRequest.setProfit(
-                    freightRequest.getClientPrice()
-                            .subtract(
-                                    freightRequest.getCarrierPrice()
-                            )
-            );
-
+    private void calculateProfit(FreightRequest request) {
+        if (request.getClientPrice() != null
+                && request.getCarrierPrice() != null) {
+            request.setProfit(
+                    request.getClientPrice().subtract(request.getCarrierPrice()));
         } else {
-
-            freightRequest.setProfit(null);
+            request.setProfit(null);
         }
     }
 
     @Transactional
     public void delete(UUID id) {
+        getAccessibleRequest(id);
 
         carrierOfferRepository.deleteByFreightRequestId(id);
-
         freightRequestRepository.deleteById(id);
     }
 
     @Transactional
     public void selectCarrierOffer(UUID offerId) {
+        CarrierOffer offer = carrierOfferRepository.findById(offerId)
+                .orElseThrow(() ->
+                        new RuntimeException("Carrier offer not found"));
 
-        CarrierOffer offer =
-                carrierOfferRepository.findById(offerId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Carrier offer not found"
-                                )
-                        );
+        FreightRequest request =
+                getAccessibleRequest(offer.getFreightRequest().getId());
 
-        FreightRequest freightRequest =
-                offer.getFreightRequest();
+        request.setCarrier(offer.getCarrier());
+        request.setCarrierPrice(offer.getOfferedPrice());
 
-        freightRequest.setCarrier(
-                offer.getCarrier()
-        );
+        calculateProfit(request);
+        request.setStatus(RequestStatus.CONFIRMED);
 
-        freightRequest.setCarrierPrice(
-                offer.getOfferedPrice()
-        );
-
-        if (freightRequest.getClientPrice() != null
-                && offer.getOfferedPrice() != null) {
-
-            freightRequest.setProfit(
-                    freightRequest.getClientPrice()
-                            .subtract(
-                                    offer.getOfferedPrice()
-                            )
-            );
-
-        } else {
-
-            freightRequest.setProfit(null);
-        }
-
-        freightRequest.setStatus(
-                RequestStatus.CONFIRMED
-        );
-
-        freightRequestRepository.save(freightRequest);
+        freightRequestRepository.save(request);
     }
 
     @Transactional
     public void updateStatus(UUID id, RequestStatus status) {
+        FreightRequest request = getAccessibleRequest(id);
 
-        FreightRequest freightRequest =
-                freightRequestRepository.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Freight request not found"
-                                )
-                        );
-
-        freightRequest.setStatus(status);
-
-        freightRequestRepository.save(freightRequest);
+        request.setStatus(status);
+        freightRequestRepository.save(request);
     }
 
     @Transactional
     public void deleteCarrierOffer(UUID offerId) {
+        CarrierOffer offer = carrierOfferRepository.findById(offerId)
+                .orElseThrow(() ->
+                        new RuntimeException("Carrier offer not found"));
 
-        CarrierOffer offer =
-                carrierOfferRepository.findById(offerId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Carrier offer not found"
-                                )
-                        );
-
-        FreightRequest freightRequest =
-                offer.getFreightRequest();
+        FreightRequest request =
+                getAccessibleRequest(offer.getFreightRequest().getId());
 
         if (offer.isSelected()) {
+            request.setCarrier(null);
+            request.setCarrierPrice(null);
+            request.setProfit(null);
+            request.setStatus(RequestStatus.OFFER_SENT);
 
-            freightRequest.setCarrier(null);
-            freightRequest.setCarrierPrice(null);
-            freightRequest.setProfit(null);
-
-            freightRequest.setStatus(
-                    RequestStatus.OFFER_SENT
-            );
-
-            freightRequestRepository.save(freightRequest);
+            freightRequestRepository.save(request);
         }
 
         carrierOfferRepository.delete(offer);

@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Freight Desk</title>
+</head>
+<body>
+
+<h1>Freight Desk</h1>
+<h2>Вход в системата</h2>
+
+<div th:if="${param.error}">
+    <p style="color: red;">Невалидно потребителско име или парола.</p>
+</div>
+
+<div th:if="${param.logout}">
+    <p>Излязохте успешно от системата.</p>
+</div>
+
+<form th:action="@{/login}" method="post">
+    <div>
+        <label for="username">Потребителско име:</label>
+        <input type="text" id="username" name="username" required>
+    </div>
+
+    <div>
+        <label for="password">Парола:</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+
+    <button type="submit">Вход</button>
+</form>
+
+</body>
+</html>

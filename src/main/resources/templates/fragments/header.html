@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header th:fragment="appHeader" class="app-header">
+    <div class="app-header-brand">
+        <a th:href="@{/freight-requests}">Freight Desk</a>
+    </div>
+
+    <div class="app-header-info">
+        <div class="app-header-organization">
+            <span class="app-header-label">Фирма</span>
+            <strong th:text="${currentOrganization != null
+                ? currentOrganization.name
+                : 'Няма фирма'}">Име на фирма</strong>
+        </div>
+
+        <div class="app-header-user">
+            <span class="app-header-label">Спедитор</span>
+            <strong th:text="${currentUser != null
+                ? ((currentUser.firstName != null ? currentUser.firstName : '')
+                    + ' '
+                    + (currentUser.lastName != null ? currentUser.lastName : '')).trim()
+                : 'Неизвестен потребител'}">Име на спедитор</strong>
+        </div>
+
+        <form th:action="@{/logout}" method="post" class="app-header-logout">
+            <button type="submit">Изход</button>
+        </form>
+    </div>
+</header>
+
+<style>
+    .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 14px 24px;
+        margin-bottom: 24px;
+        background: #183153;
+        color: white;
+        border-radius: 8px;
+        font-family: Arial, sans-serif;
+    }
+
+    .app-header-brand a {
+        color: white;
+        text-decoration: none;
+        font-size: 22px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .app-header-info {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 28px;
+        flex-wrap: wrap;
+    }
+
+    .app-header-organization,
+    .app-header-user {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .app-header-label {
+        color: #cbd5e1;
+        font-size: 12px;
+    }
+
+    .app-header-info strong {
+        font-size: 14px;
+    }
+
+    .app-header-logout {
+        margin: 0;
+    }
+
+    .app-header-logout button {
+        padding: 8px 14px;
+        color: white;
+        background: #334155;
+        border: 1px solid #64748b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .app-header-logout button:hover {
+        background: #475569;
+    }
+
+    @media (max-width: 700px) {
+        .app-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .app-header-info {
+            justify-content: flex-start;
+            gap: 16px;
+        }
+    }
+</style>
+
+</body>
+</html>

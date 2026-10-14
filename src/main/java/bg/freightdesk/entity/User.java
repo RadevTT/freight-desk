@@ -25,19 +25,15 @@ public class User {
 
     private boolean enabled;
 
-    @ManyToOne
-    private Company company;
+    @Column(nullable = false)
+    private boolean visibleToColleagues = true;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "organization_id", nullable = false)
+    private Organization organization;
 
     @Enumerated(EnumType.STRING)
     private Role role;
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
 
     public User() {
     }
@@ -98,11 +94,27 @@ public class User {
         this.enabled = enabled;
     }
 
-    public Company getCompany() {
-        return company;
+    public Organization getOrganization() {
+        return organization;
     }
 
-    public void setCompany(Company company) {
-        this.company = company;
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public boolean isVisibleToColleagues() {
+        return visibleToColleagues;
+    }
+
+    public void setVisibleToColleagues(boolean visibleToColleagues) {
+        this.visibleToColleagues = visibleToColleagues;
     }
 }

@@ -288,6 +288,11 @@ public class FreightRequestMapper {
             freightRequest.setStatus(
                     RequestStatus.valueOf(dto.getStatus())
             );
+
+        } else if (dto.getId() == null) {
+
+            // Нова заявка без зададен статус започва като NEW
+            freightRequest.setStatus(RequestStatus.NEW);
         }
 
         if (dto.getCustomerId() != null) {
