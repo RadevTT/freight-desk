@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import bg.freightdesk.model.ColleagueAccessLevel;
 
 import java.util.List;
 import java.util.UUID;
@@ -40,8 +41,7 @@ public class FreightRequestService {
     }
 
     private User getCurrentUser() {
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null
                 || !authentication.isAuthenticated()
@@ -50,8 +50,7 @@ public class FreightRequestService {
         }
 
         return userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() ->
-                        new AccessDeniedException("Current user not found"));
+                .orElseThrow(() -> new AccessDeniedException("Current user not found"));
     }
 
     private boolean isAdmin(User user) {
@@ -59,42 +58,68 @@ public class FreightRequestService {
                 && "ADMIN".equals(user.getRole().name());
     }
 
-    private boolean canAccess(FreightRequest request, User currentUser) {
+    private boolean belongsToSameOrganization(User owner, User currentUser) {
+        return owner != null
+                && owner.getOrganization() != null
+                && currentUser.getOrganization() != null
+                && owner.getOrganization().getId()
+                        .equals(currentUser.getOrganization().getId());
+    }
+
+    private boolean canView(FreightRequest request, User currentUser) {
         User owner = request.getForwarder();
 
-        // Старите заявки без собственик не се предоставят автоматично.
-        if (owner == null
-                || owner.getOrganization() == null
-                || currentUser.getOrganization() == null) {
+        if (!belongsToSameOrganization(owner, currentUser)) {
             return false;
         }
 
-        // Потребителите от друга организация нямат достъп.
-        if (!owner.getOrganization().getId()
-                .equals(currentUser.getOrganization().getId())) {
-            return false;
-        }
-
-        // Администраторът вижда заявките в собствената си организация.
-        if (isAdmin(currentUser)) {
+        if (isAdmin(currentUser)
+                || owner.getId().equals(currentUser.getId())) {
             return true;
         }
 
-        // Собственикът винаги има достъп до собствената си заявка.
-        if (owner.getId().equals(currentUser.getId())) {
-            return true;
-        }
-
-        // Колегите имат достъп само при разрешено споделяне.
         return owner.isVisibleToColleagues();
+    }
+
+    private boolean canAddTo(FreightRequest request, User currentUser) {
+        User owner = request.getForwarder();
+
+        if (!belongsToSameOrganization(owner, currentUser)) {
+            return false;
+        }
+
+        if (isAdmin(currentUser)
+                || owner.getId().equals(currentUser.getId())) {
+            return true;
+        }
+
+        return owner.isVisibleToColleagues()
+                && owner.getColleagueAccessLevel() != null
+                && (owner.getColleagueAccessLevel() == ColleagueAccessLevel.VIEW_AND_ADD
+                        || owner.getColleagueAccessLevel() == ColleagueAccessLevel.FULL_ACCESS);
+    }
+
+    private boolean canManage(FreightRequest request, User currentUser) {
+        User owner = request.getForwarder();
+
+        if (!belongsToSameOrganization(owner, currentUser)) {
+            return false;
+        }
+
+        if (isAdmin(currentUser)
+                || owner.getId().equals(currentUser.getId())) {
+            return true;
+        }
+
+        return owner.isVisibleToColleagues()
+                && owner.getColleagueAccessLevel() == ColleagueAccessLevel.FULL_ACCESS;
     }
 
     private FreightRequest getAccessibleRequest(UUID id) {
         FreightRequest request = freightRequestRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Freight request not found"));
+                .orElseThrow(() -> new RuntimeException("Freight request not found"));
 
-        if (!canAccess(request, getCurrentUser())) {
+        if (!canView(request, getCurrentUser())) {
             throw new AccessDeniedException(
                     "You do not have access to this freight request");
         }
@@ -102,12 +127,52 @@ public class FreightRequestService {
         return request;
     }
 
+    public void requireCanView(UUID requestId) {
+        getAccessibleRequest(requestId);
+    }
+
+    public void requireCanAddTo(UUID requestId) {
+        FreightRequest request = getAccessibleRequest(requestId);
+
+        if (!canAddTo(request, getCurrentUser())) {
+            throw new AccessDeniedException(
+                    "You do not have permission to add to this freight request");
+        }
+    }
+
+    public void requireCanManage(UUID requestId) {
+        FreightRequest request = getAccessibleRequest(requestId);
+
+        if (!canManage(request, getCurrentUser())) {
+            throw new AccessDeniedException(
+                    "You do not have permission to manage this freight request");
+        }
+    }
+
+    @Transactional
+    public void markOfferSentIfNoSelectedOffer(UUID requestId) {
+        FreightRequest request = getAccessibleRequest(requestId);
+
+        if (!canAddTo(request, getCurrentUser())) {
+            throw new AccessDeniedException(
+                    "You do not have permission to add an offer");
+        }
+
+        CarrierOffer selectedOffer = carrierOfferRepository.findByFreightRequestIdAndSelectedTrue(
+                requestId);
+
+        if (selectedOffer == null) {
+            request.setStatus(RequestStatus.OFFER_SENT);
+            freightRequestRepository.save(request);
+        }
+    }
+
     public List<FreightRequestDTO> findAll() {
         User currentUser = getCurrentUser();
 
         return freightRequestRepository.findAll()
                 .stream()
-                .filter(request -> canAccess(request, currentUser))
+                .filter(request -> canView(request, currentUser))
                 .map(freightRequestMapper::toDTO)
                 .toList();
     }
@@ -139,14 +204,18 @@ public class FreightRequestService {
         // Проверяваме правата преди редакция.
         FreightRequest existingRequest = getAccessibleRequest(dto.getId());
 
+        if (!canManage(existingRequest, currentUser)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to edit this freight request");
+        }
+
         FreightRequest updatedRequest = freightRequestMapper.toEntity(dto);
 
         // Не позволяваме смяна на собственика чрез формата.
         updatedRequest.setForwarder(existingRequest.getForwarder());
 
-        CarrierOffer selectedOffer =
-                carrierOfferRepository.findByFreightRequestIdAndSelectedTrue(
-                        dto.getId());
+        CarrierOffer selectedOffer = carrierOfferRepository.findByFreightRequestIdAndSelectedTrue(
+                dto.getId());
 
         // Запазваме избраната оферта като източник на цената.
         if (selectedOffer != null) {
@@ -175,7 +244,13 @@ public class FreightRequestService {
 
     @Transactional
     public void delete(UUID id) {
-        getAccessibleRequest(id);
+        FreightRequest request = getAccessibleRequest(id);
+        User currentUser = getCurrentUser();
+
+        if (!canManage(request, currentUser)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to delete this freight request");
+        }
 
         carrierOfferRepository.deleteByFreightRequestId(id);
         freightRequestRepository.deleteById(id);
@@ -184,11 +259,16 @@ public class FreightRequestService {
     @Transactional
     public void selectCarrierOffer(UUID offerId) {
         CarrierOffer offer = carrierOfferRepository.findById(offerId)
-                .orElseThrow(() ->
-                        new RuntimeException("Carrier offer not found"));
+                .orElseThrow(() -> new RuntimeException("Carrier offer not found"));
 
-        FreightRequest request =
-                getAccessibleRequest(offer.getFreightRequest().getId());
+        FreightRequest request = getAccessibleRequest(offer.getFreightRequest().getId());
+
+        User currentUser = getCurrentUser();
+
+        if (!canManage(request, currentUser)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to select a carrier offer");
+        }
 
         request.setCarrier(offer.getCarrier());
         request.setCarrierPrice(offer.getOfferedPrice());
@@ -202,6 +282,12 @@ public class FreightRequestService {
     @Transactional
     public void updateStatus(UUID id, RequestStatus status) {
         FreightRequest request = getAccessibleRequest(id);
+        User currentUser = getCurrentUser();
+
+        if (!canManage(request, currentUser)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to change the request status");
+        }
 
         request.setStatus(status);
         freightRequestRepository.save(request);
@@ -210,11 +296,16 @@ public class FreightRequestService {
     @Transactional
     public void deleteCarrierOffer(UUID offerId) {
         CarrierOffer offer = carrierOfferRepository.findById(offerId)
-                .orElseThrow(() ->
-                        new RuntimeException("Carrier offer not found"));
+                .orElseThrow(() -> new RuntimeException("Carrier offer not found"));
 
-        FreightRequest request =
-                getAccessibleRequest(offer.getFreightRequest().getId());
+        FreightRequest request = getAccessibleRequest(offer.getFreightRequest().getId());
+
+        User currentUser = getCurrentUser();
+
+        if (!canManage(request, currentUser)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to delete a carrier offer");
+        }
 
         if (offer.isSelected()) {
             request.setCarrier(null);

@@ -1,5 +1,6 @@
 package bg.freightdesk.entity;
 
+import bg.freightdesk.model.ColleagueAccessLevel;
 import bg.freightdesk.model.Role;
 import jakarta.persistence.*;
 
@@ -27,6 +28,10 @@ public class User {
 
     @Column(nullable = false)
     private boolean visibleToColleagues = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ColleagueAccessLevel colleagueAccessLevel = ColleagueAccessLevel.VIEW_ONLY;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
@@ -117,4 +122,12 @@ public class User {
     public void setVisibleToColleagues(boolean visibleToColleagues) {
         this.visibleToColleagues = visibleToColleagues;
     }
+
+    public ColleagueAccessLevel getColleagueAccessLevel() {
+    return colleagueAccessLevel;
+}
+
+    public void setColleagueAccessLevel(ColleagueAccessLevel colleagueAccessLevel) {
+    this.colleagueAccessLevel = colleagueAccessLevel;
+}
 }

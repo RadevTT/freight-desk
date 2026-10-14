@@ -25,120 +25,120 @@ import java.util.UUID;
 @RequestMapping("/freight-requests/{freightRequestId}/documents")
 public class FreightDocumentController {
 
-    private final FreightDocumentService freightDocumentService;
+        private final FreightDocumentService freightDocumentService;
 
-    public FreightDocumentController(FreightDocumentService freightDocumentService) {
-        this.freightDocumentService = freightDocumentService;
-    }
-
-    @PostMapping("/upload")
-    public String uploadDocument(
-            @PathVariable UUID freightRequestId,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("documentType") DocumentType documentType,
-            @RequestParam(value = "invoiceNumber", required = false) String invoiceNumber
-    ) throws IOException {
-
-        freightDocumentService.uploadDocument(
-                freightRequestId,
-                file,
-                documentType,
-                invoiceNumber
-        );
-
-        return "redirect:/freight-requests";
-    }
-
-    @GetMapping
-    @ResponseBody
-    public List<FreightDocument> getDocuments(
-            @PathVariable UUID freightRequestId
-    ) {
-        return freightDocumentService.getDocuments(freightRequestId);
-    }
-
-    @GetMapping("/{documentId}/view")
-    public ResponseEntity<Resource> viewDocument(
-            @PathVariable UUID freightRequestId,
-            @PathVariable UUID documentId
-    ) throws IOException {
-
-        FreightDocument document =
-                freightDocumentService.getDocument(documentId);
-
-        Path path = Paths.get(document.getFilePath());
-
-        if (!Files.exists(path)) {
-            return ResponseEntity.notFound().build();
+        public FreightDocumentController(FreightDocumentService freightDocumentService) {
+                this.freightDocumentService = freightDocumentService;
         }
 
-        Resource resource = new UrlResource(path.toUri());
+        @PostMapping("/upload")
+        public String uploadDocument(
+                        @PathVariable UUID freightRequestId,
+                        @RequestParam("file") MultipartFile file,
+                        @RequestParam("documentType") DocumentType documentType,
+                        @RequestParam(value = "invoiceNumber", required = false) String invoiceNumber)
+                        throws IOException {
 
-        String contentType = Files.probeContentType(path);
+                freightDocumentService.uploadDocument(
+                                freightRequestId,
+                                file,
+                                documentType,
+                                invoiceNumber);
 
-        if (contentType == null) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+                return "redirect:/freight-requests";
         }
 
-        ContentDisposition contentDisposition =
-                ContentDisposition.inline()
-                        .filename(
-                                document.getFileName(),
-                                StandardCharsets.UTF_8
-                        )
-                        .build();
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        contentDisposition.toString()
-                )
-                .body(resource);
-    }
-
-    @GetMapping("/{documentId}/download")
-    public ResponseEntity<Resource> downloadDocument(
-            @PathVariable UUID freightRequestId,
-            @PathVariable UUID documentId
-    ) throws IOException {
-
-        FreightDocument document =
-                freightDocumentService.getDocument(documentId);
-
-        Path path = Paths.get(document.getFilePath());
-
-        if (!Files.exists(path)) {
-            return ResponseEntity.notFound().build();
+        @GetMapping
+        @ResponseBody
+        public List<FreightDocument> getDocuments(
+                        @PathVariable UUID freightRequestId) {
+                return freightDocumentService.getDocuments(freightRequestId);
         }
 
-        Resource resource = new UrlResource(path.toUri());
+        @GetMapping("/{documentId}/view")
+        public ResponseEntity<Resource> viewDocument(
+                        @PathVariable UUID freightRequestId,
+                        @PathVariable UUID documentId) throws IOException {
 
-        ContentDisposition contentDisposition =
-                ContentDisposition.attachment()
-                        .filename(
-                                document.getFileName(),
-                                StandardCharsets.UTF_8
-                        )
-                        .build();
+                FreightDocument document = freightDocumentService.getDocument(documentId);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        contentDisposition.toString()
-                )
-                .body(resource);
-    }
+                if (!document.getFreightRequest().getId().equals(freightRequestId)) {
+                        return ResponseEntity.notFound().build();
+                }
 
-    @PostMapping("/{documentId}/delete")
-    public String deleteDocument(
-            @PathVariable UUID freightRequestId,
-            @PathVariable UUID documentId
-    ) {
+                Path path = Paths.get(document.getFilePath());
 
-        freightDocumentService.deleteDocument(documentId);
+                if (!Files.exists(path)) {
+                        return ResponseEntity.notFound().build();
+                }
 
-        return "redirect:/freight-requests";
-    }
+                Resource resource = new UrlResource(path.toUri());
+
+                String contentType = Files.probeContentType(path);
+
+                if (contentType == null) {
+                        contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+                }
+
+                ContentDisposition contentDisposition = ContentDisposition.inline()
+                                .filename(
+                                                document.getFileName(),
+                                                StandardCharsets.UTF_8)
+                                .build();
+
+                return ResponseEntity.ok()
+                                .contentType(MediaType.parseMediaType(contentType))
+                                .header(
+                                                HttpHeaders.CONTENT_DISPOSITION,
+                                                contentDisposition.toString())
+                                .body(resource);
+        }
+
+        @GetMapping("/{documentId}/download")
+        public ResponseEntity<Resource> downloadDocument(
+                        @PathVariable UUID freightRequestId,
+                        @PathVariable UUID documentId) throws IOException {
+
+                FreightDocument document = freightDocumentService.getDocument(documentId);
+
+                if (!document.getFreightRequest().getId().equals(freightRequestId)) {
+                        return ResponseEntity.notFound().build();
+                }
+                Path path = Paths.get(document.getFilePath());
+
+                if (!Files.exists(path)) {
+                        return ResponseEntity.notFound().build();
+                }
+
+                Resource resource = new UrlResource(path.toUri());
+
+                ContentDisposition contentDisposition = ContentDisposition.attachment()
+                                .filename(
+                                                document.getFileName(),
+                                                StandardCharsets.UTF_8)
+                                .build();
+
+                return ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                                .header(
+                                                HttpHeaders.CONTENT_DISPOSITION,
+                                                contentDisposition.toString())
+                                .body(resource);
+        }
+
+        @PostMapping("/{documentId}/delete")
+        public String deleteDocument(
+                        @PathVariable UUID freightRequestId,
+                        @PathVariable UUID documentId) {
+
+                FreightDocument document = freightDocumentService.getDocument(documentId);
+
+                if (!document.getFreightRequest().getId().equals(freightRequestId)) {
+                        throw new IllegalArgumentException("Document does not belong to this freight request.");
+                }
+
+                freightDocumentService.deleteDocument(documentId);
+
+                return "redirect:/freight-requests";
+        }
 }

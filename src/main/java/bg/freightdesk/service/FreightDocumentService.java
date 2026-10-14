@@ -23,15 +23,17 @@ public class FreightDocumentService {
 
     private final FreightDocumentRepository freightDocumentRepository;
     private final FreightRequestRepository freightRequestRepository;
+    private final FreightRequestService freightRequestService;
 
     private final Path uploadDirectory = Paths.get("uploads", "freight");
 
     public FreightDocumentService(
             FreightDocumentRepository freightDocumentRepository,
-            FreightRequestRepository freightRequestRepository
-    ) {
+            FreightRequestRepository freightRequestRepository,
+            FreightRequestService freightRequestService) {
         this.freightDocumentRepository = freightDocumentRepository;
         this.freightRequestRepository = freightRequestRepository;
+        this.freightRequestService = freightRequestService;
     }
 
     @Transactional
@@ -39,13 +41,13 @@ public class FreightDocumentService {
             UUID freightRequestId,
             MultipartFile file,
             DocumentType documentType,
-            String invoiceNumber
-    ) throws IOException {
+            String invoiceNumber) throws IOException {
 
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is empty.");
         }
 
+        freightRequestService.requireCanAddTo(freightRequestId);
         FreightRequest freightRequest = freightRequestRepository.findById(freightRequestId)
                 .orElseThrow(() -> new IllegalArgumentException("Freight request not found."));
 
@@ -58,11 +60,9 @@ public class FreightDocumentService {
          * OTHER documents can be multiple.
          */
         if (documentType != DocumentType.OTHER) {
-            List<FreightDocument> existingDocuments =
-                    freightDocumentRepository.findByFreightRequestAndDocumentType(
-                            freightRequest,
-                            documentType
-                    );
+            List<FreightDocument> existingDocuments = freightDocumentRepository.findByFreightRequestAndDocumentType(
+                    freightRequest,
+                    documentType);
 
             for (FreightDocument existingDocument : existingDocuments) {
                 deletePhysicalFile(existingDocument);
@@ -87,8 +87,7 @@ public class FreightDocumentService {
         Files.copy(
                 file.getInputStream(),
                 targetPath,
-                StandardCopyOption.REPLACE_EXISTING
-        );
+                StandardCopyOption.REPLACE_EXISTING);
 
         FreightDocument document = new FreightDocument();
 
@@ -104,24 +103,30 @@ public class FreightDocumentService {
 
     @Transactional(readOnly = true)
     public List<FreightDocument> getDocuments(UUID freightRequestId) {
+        freightRequestService.requireCanView(freightRequestId);
 
         return freightDocumentRepository.findByFreightRequestId(freightRequestId);
     }
 
     @Transactional(readOnly = true)
     public FreightDocument getDocument(UUID documentId) {
-
-        return freightDocumentRepository.findById(documentId)
+        FreightDocument document = freightDocumentRepository.findById(documentId)
                 .orElseThrow(() -> new IllegalArgumentException("Document not found."));
+
+        freightRequestService.requireCanView(
+                document.getFreightRequest().getId());
+
+        return document;
     }
 
     @Transactional
     public void deleteDocument(UUID documentId) {
-
         FreightDocument document = getDocument(documentId);
 
-        deletePhysicalFile(document);
+        freightRequestService.requireCanManage(
+                document.getFreightRequest().getId());
 
+        deletePhysicalFile(document);
         freightDocumentRepository.delete(document);
     }
 
