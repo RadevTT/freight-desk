@@ -3,11 +3,13 @@ package bg.freightdesk.service;
 
 import bg.freightdesk.dto.FreightRequestDTO;
 import bg.freightdesk.entity.CarrierOffer;
+import bg.freightdesk.entity.FreightDocument;
 import bg.freightdesk.entity.FreightRequest;
 import bg.freightdesk.entity.User;
 import bg.freightdesk.mapper.FreightRequestMapper;
 import bg.freightdesk.model.RequestStatus;
 import bg.freightdesk.repository.CarrierOfferRepository;
+import bg.freightdesk.repository.FreightDocumentRepository;
 import bg.freightdesk.repository.FreightRequestRepository;
 import bg.freightdesk.repository.UserRepository;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +18,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import bg.freightdesk.model.ColleagueAccessLevel;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,17 +33,20 @@ public class FreightRequestService {
     private final FreightRequestMapper freightRequestMapper;
     private final CarrierOfferRepository carrierOfferRepository;
     private final UserRepository userRepository;
+    private final FreightDocumentRepository freightDocumentRepository;
 
     public FreightRequestService(
             FreightRequestRepository freightRequestRepository,
             FreightRequestMapper freightRequestMapper,
             CarrierOfferRepository carrierOfferRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            FreightDocumentRepository freightDocumentRepository) {
 
         this.freightRequestRepository = freightRequestRepository;
         this.freightRequestMapper = freightRequestMapper;
         this.carrierOfferRepository = carrierOfferRepository;
         this.userRepository = userRepository;
+        this.freightDocumentRepository = freightDocumentRepository;
     }
 
     private User getCurrentUser() {
@@ -252,8 +261,29 @@ public class FreightRequestService {
                     "You do not have permission to delete this freight request");
         }
 
+        // Find all documents belonging to this request.
+        List<FreightDocument> documents = freightDocumentRepository.findByFreightRequestId(id);
+
+        // Delete the physical files.
+        for (FreightDocument document : documents) {
+            String filePath = document.getFilePath();
+
+            if (filePath != null && !filePath.isBlank()) {
+                try {
+                    Files.deleteIfExists(Paths.get(filePath));
+                } catch (IOException e) {
+                    throw new RuntimeException(
+                            "Could not delete document file: " + filePath, e);
+                }
+            }
+        }
+
+        // Delete document records and carrier offers.
+        freightDocumentRepository.deleteAll(documents);
         carrierOfferRepository.deleteByFreightRequestId(id);
-        freightRequestRepository.deleteById(id);
+
+        // Delete the freight request last.
+        freightRequestRepository.delete(request);
     }
 
     @Transactional
