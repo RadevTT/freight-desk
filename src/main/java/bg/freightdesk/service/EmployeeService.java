@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class EmployeeService {
@@ -34,12 +35,15 @@ public class EmployeeService {
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getName())) {
-            throw new AccessDeniedException("Трябва да влезете в системата.");
+            throw new AccessDeniedException(
+                    "Трябва да влезете в системата.");
         }
 
-        User currentUser = userRepository.findByUsername(authentication.getName())
+        User currentUser = userRepository
+                .findByUsername(authentication.getName())
                 .orElseThrow(() ->
-                        new AccessDeniedException("Потребителят не е намерен."));
+                        new AccessDeniedException(
+                                "Потребителят не е намерен."));
 
         if (currentUser.getRole() != Role.ADMIN) {
             throw new AccessDeniedException(
@@ -49,12 +53,17 @@ public class EmployeeService {
         return currentUser;
     }
 
+    public void checkAdminAccess() {
+        getCurrentAdmin();
+    }
+
     @Transactional(readOnly = true)
     public List<User> getEmployees() {
         User admin = getCurrentAdmin();
 
         return userRepository
-                .findAllByOrganization_Id(admin.getOrganization().getId())
+                .findAllByOrganization_Id(
+                        admin.getOrganization().getId())
                 .stream()
                 .filter(user -> user.getRole() == Role.FORWARDER)
                 .toList();
@@ -84,7 +93,8 @@ public class EmployeeService {
 
         User employee = new User();
         employee.setUsername(username);
-        employee.setPassword(passwordEncoder.encode(form.getPassword()));
+        employee.setPassword(
+                passwordEncoder.encode(form.getPassword()));
         employee.setFirstName(form.getFirstName().trim());
         employee.setLastName(form.getLastName().trim());
         employee.setEmail(email);
@@ -94,5 +104,29 @@ public class EmployeeService {
         employee.setVisibleToColleagues(true);
 
         return userRepository.save(employee);
+    }
+
+    @Transactional
+    public void setEmployeeEnabled(UUID employeeId, boolean enabled) {
+        User admin = getCurrentAdmin();
+
+        User employee = userRepository.findById(employeeId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Служителят не е намерен."));
+
+        if (!employee.getOrganization().getId()
+                .equals(admin.getOrganization().getId())) {
+            throw new AccessDeniedException(
+                    "Нямате достъп до този служител.");
+        }
+
+        if (employee.getRole() != Role.FORWARDER) {
+            throw new AccessDeniedException(
+                    "Може да управлявате само служители.");
+        }
+
+        employee.setEnabled(enabled);
+        userRepository.save(employee);
     }
 }

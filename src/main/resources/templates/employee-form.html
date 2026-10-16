@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Добавяне на служител - Freight Desk</title>
+</head>
+<body>
+
+<h1>Добавяне на служител</h1>
+
+<p>Новият служител автоматично ще бъде добавен към твоята организация.</p>
+
+<p>
+    <a th:href="@{/employees}">Обратно към служителите</a>
+</p>
+
+<p th:if="${formError != null}"
+   th:text="${formError}">
+</p>
+
+<form th:action="@{/employees}"
+      th:object="${employeeForm}"
+      method="post">
+
+    <div>
+        <label for="username">Потребителско име</label>
+        <input id="username" type="text" th:field="*{username}" required>
+        <p th:errors="*{username}"></p>
+    </div>
+
+    <div>
+        <label for="firstName">Собствено име</label>
+        <input id="firstName" type="text" th:field="*{firstName}" required>
+        <p th:errors="*{firstName}"></p>
+    </div>
+
+    <div>
+        <label for="lastName">Фамилия</label>
+        <input id="lastName" type="text" th:field="*{lastName}" required>
+        <p th:errors="*{lastName}"></p>
+    </div>
+
+    <div>
+        <label for="email">Имейл</label>
+        <input id="email" type="email" th:field="*{email}" required>
+        <p th:errors="*{email}"></p>
+    </div>
+
+    <div>
+        <label for="password">Начална парола</label>
+        <input id="password" type="password"
+               th:field="*{password}" minlength="8" required>
+        <p th:errors="*{password}"></p>
+    </div>
+
+    <div>
+        <label for="confirmPassword">Потвърди паролата</label>
+        <input id="confirmPassword" type="password"
+               th:field="*{confirmPassword}" required>
+        <p th:errors="*{confirmPassword}"></p>
+    </div>
+
+    <button type="submit">Създай служител</button>
+</form>
+
+</body>
+</html>

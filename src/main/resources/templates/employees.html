@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Управление на служители - Freight Desk</title>
+</head>
+<body>
+
+<h1>Управление на служители</h1>
+
+<p>
+    <a th:href="@{/freight-requests}">Към транспортните заявки</a>
+</p>
+
+<p>
+    <a th:href="@{/employees/new}">+ Добави служител</a>
+</p>
+
+<p th:if="${successMessage != null}"
+   th:text="${successMessage}">
+</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+    <tr>
+        <th>Потребителско име</th>
+        <th>Име</th>
+        <th>Фамилия</th>
+        <th>Имейл</th>
+        <th>Статус</th>
+        <th>Действие</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="employee : ${employees}">
+        <td th:text="${employee.username}"></td>
+        <td th:text="${employee.firstName}"></td>
+        <td th:text="${employee.lastName}"></td>
+        <td th:text="${employee.email}"></td>
+
+        <td>
+            <span th:if="${employee.enabled}">Активен</span>
+            <span th:unless="${employee.enabled}">Неактивен</span>
+        </td>
+
+        <td>
+            <form th:action="@{/employees/{id}/enabled(id=${employee.id})}"
+                  method="post">
+
+                <input type="hidden"
+                       name="enabled"
+                       th:value="${!employee.enabled}">
+
+                <button type="submit"
+                        th:text="${employee.enabled
+                            ? 'Деактивирай'
+                            : 'Активирай'}">
+                </button>
+            </form>
+        </td>
+    </tr>
+
+    <tr th:if="${#lists.isEmpty(employees)}">
+        <td colspan="6">Все още няма добавени служители.</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

@@ -59,16 +59,22 @@ public class FreightDocumentService {
          * For the three main document types we keep only one document.
          * OTHER documents can be multiple.
          */
-        if (documentType != DocumentType.OTHER) {
-            List<FreightDocument> existingDocuments = freightDocumentRepository.findByFreightRequestAndDocumentType(
+       if (documentType != DocumentType.OTHER) {
+    List<FreightDocument> existingDocuments =
+            freightDocumentRepository.findByFreightRequestAndDocumentType(
                     freightRequest,
                     documentType);
 
-            for (FreightDocument existingDocument : existingDocuments) {
-                deletePhysicalFile(existingDocument);
-                freightDocumentRepository.delete(existingDocument);
-            }
+    if (!existingDocuments.isEmpty()) {
+        // Замяната на документ също изисква право за управление.
+        freightRequestService.requireCanManage(freightRequestId);
+
+        for (FreightDocument existingDocument : existingDocuments) {
+            deletePhysicalFile(existingDocument);
+            freightDocumentRepository.delete(existingDocument);
         }
+    }
+}
 
         String originalFileName = file.getOriginalFilename();
 
