@@ -2,7 +2,7 @@
 package bg.freightdesk.controller;
 
 import bg.freightdesk.dto.CarrierOfferDTO;
-import bg.freightdesk.entity.CompanyType;
+import bg.freightdesk.model.CompanyType;
 import bg.freightdesk.service.CarrierOfferService;
 import bg.freightdesk.service.CarrierService;
 import bg.freightdesk.service.CompanyService;
