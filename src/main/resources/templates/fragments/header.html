@@ -22,6 +22,9 @@
                     + ' '
                     + (currentUser.lastName != null ? currentUser.lastName : '')).trim()
                 : 'Неизвестен потребител'}">Име на спедитор</strong>
+            <a th:href="@{/profile/access}" class="app-header-access">
+                Достъп на колегите
+            </a>
         </div>
 
         <form th:action="@{/logout}" method="post" class="app-header-logout">
@@ -74,6 +77,17 @@
 
     .app-header-info strong {
         font-size: 14px;
+    }
+
+    .app-header-access {
+        color: #bfdbfe;
+        font-size: 12px;
+        text-decoration: none;
+    }
+
+    .app-header-access:hover {
+        color: white;
+        text-decoration: underline;
     }
 
     .app-header-logout {

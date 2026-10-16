@@ -8,6 +8,8 @@ public class FreightRequestDTO {
 
     private UUID id;
 
+    private String forwarderInitials;
+
     private LocalDate requestDate;
 
     private LocalDate loadingDate;
@@ -91,6 +93,14 @@ public class FreightRequestDTO {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public String getForwarderInitials() {
+        return forwarderInitials;
+    }
+
+    public void setForwarderInitials(String forwarderInitials) {
+        this.forwarderInitials = forwarderInitials;
     }
 
     public LocalDate getRequestDate() {
@@ -276,7 +286,6 @@ public class FreightRequestDTO {
     public void setStatus(String status) {
         this.status = status;
     }
-
 
     public void setNewOfferAvailable(boolean newOfferAvailable) {
         this.newOfferAvailable = newOfferAvailable;

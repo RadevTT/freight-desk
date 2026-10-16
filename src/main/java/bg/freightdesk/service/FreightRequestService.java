@@ -212,15 +212,75 @@ public class FreightRequestService {
     }
 
     @Transactional(readOnly = true)
-    public List<FreightRequestDTO> findAll() {
-        User currentUser = getCurrentUser();
+public List<FreightRequestDTO> findAll() {
+    return findAll(null);
+}
 
-        return freightRequestRepository.findAll()
+@Transactional(readOnly = true)
+public List<FreightRequestDTO> findAll(UUID forwarderId) {
+
+    User currentUser = getCurrentUser();
+
+    // Проверяваме дали избраният спедитор е достъпен.
+    if (forwarderId != null) {
+
+        boolean allowed = getSelectableForwarders()
                 .stream()
-                .filter(request -> canView(request, currentUser))
-                .map(freightRequestMapper::toDTO)
-                .toList();
+                .anyMatch(user -> user.getId().equals(forwarderId));
+
+        if (!allowed) {
+            throw new AccessDeniedException(
+                    "You cannot view requests for this forwarder"
+            );
+        }
     }
+
+    return freightRequestRepository.findAll()
+            .stream()
+
+            // Първо проверяваме реалните права за достъп.
+            .filter(request -> canView(request, currentUser))
+
+            // След това прилагаме избрания филтър.
+            .filter(request ->
+                    forwarderId == null
+                            || (request.getForwarder() != null
+                            && request.getForwarder().getId()
+                                    .equals(forwarderId))
+            )
+
+            .map(freightRequestMapper::toDTO)
+            .toList();
+}
+
+@Transactional(readOnly = true)
+public List<User> getSelectableForwarders() {
+
+    User currentUser = getCurrentUser();
+
+    if (currentUser.getOrganization() == null) {
+        return List.of();
+    }
+
+    return userRepository
+            .findAllByOrganization_Id(
+                    currentUser.getOrganization().getId()
+            )
+            .stream()
+            .filter(User::isEnabled)
+            .filter(user ->
+                    isAdmin(currentUser)
+                            || user.getId().equals(currentUser.getId())
+                            || user.isVisibleToColleagues()
+            )
+            .sorted(java.util.Comparator.comparing(
+                    User::getFirstName,
+                    java.util.Comparator.nullsLast(
+                            String.CASE_INSENSITIVE_ORDER
+                    )
+            ))
+            .toList();
+}
 
     @Transactional(readOnly = true)
     public FreightRequestDTO findDTOById(UUID id) {
