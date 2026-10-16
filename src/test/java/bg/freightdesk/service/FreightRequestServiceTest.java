@@ -1,6 +1,7 @@
 package bg.freightdesk.service;
 
 import bg.freightdesk.dto.FreightRequestDTO;
+import bg.freightdesk.entity.CarrierOffer;
 import bg.freightdesk.entity.FreightRequest;
 import bg.freightdesk.entity.Organization;
 import bg.freightdesk.entity.User;
@@ -251,5 +252,287 @@ class FreightRequestServiceTest {
 
         verify(freightRequestRepository, never())
                 .save(any(FreightRequest.class));
+    }
+
+    @Test
+    void colleagueWithViewOnlyCannotAddToRequest() {
+        UUID organizationId = UUID.randomUUID();
+        UUID requestId = UUID.randomUUID();
+
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+
+        User owner = new User();
+        owner.setId(UUID.randomUUID());
+        owner.setOrganization(organization);
+        owner.setVisibleToColleagues(true);
+        owner.setColleagueAccessLevel(ColleagueAccessLevel.VIEW_ONLY);
+
+        User colleague = new User();
+        colleague.setId(UUID.randomUUID());
+        colleague.setOrganization(organization);
+
+        FreightRequest request = new FreightRequest();
+        request.setId(requestId);
+        request.setForwarder(owner);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(
+                        "colleague",
+                        "password",
+                        Collections.emptyList()
+                )
+        );
+
+        when(userRepository.findByUsername("colleague"))
+                .thenReturn(Optional.of(colleague));
+
+        when(freightRequestRepository.findById(requestId))
+                .thenReturn(Optional.of(request));
+
+        assertThrows(
+                AccessDeniedException.class,
+                () -> freightRequestService.requireCanAddTo(requestId)
+        );
+    }
+
+    @Test
+    void colleagueWithViewAndAddCannotManageRequest() {
+        UUID organizationId = UUID.randomUUID();
+        UUID requestId = UUID.randomUUID();
+
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+
+        User owner = new User();
+        owner.setId(UUID.randomUUID());
+        owner.setOrganization(organization);
+        owner.setVisibleToColleagues(true);
+        owner.setColleagueAccessLevel(ColleagueAccessLevel.VIEW_AND_ADD);
+
+        User colleague = new User();
+        colleague.setId(UUID.randomUUID());
+        colleague.setOrganization(organization);
+
+        FreightRequest request = new FreightRequest();
+        request.setId(requestId);
+        request.setForwarder(owner);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(
+                        "colleague",
+                        "password",
+                        Collections.emptyList()
+                )
+        );
+
+        when(userRepository.findByUsername("colleague"))
+                .thenReturn(Optional.of(colleague));
+
+        when(freightRequestRepository.findById(requestId))
+                .thenReturn(Optional.of(request));
+
+        assertThrows(
+                AccessDeniedException.class,
+                () -> freightRequestService.requireCanManage(requestId)
+        );
+    }
+
+    @Test
+    void colleagueWithFullAccessCanManageRequest() {
+        UUID organizationId = UUID.randomUUID();
+        UUID requestId = UUID.randomUUID();
+
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+
+        User owner = new User();
+        owner.setId(UUID.randomUUID());
+        owner.setOrganization(organization);
+        owner.setVisibleToColleagues(true);
+        owner.setColleagueAccessLevel(ColleagueAccessLevel.FULL_ACCESS);
+
+        User colleague = new User();
+        colleague.setId(UUID.randomUUID());
+        colleague.setOrganization(organization);
+
+        FreightRequest request = new FreightRequest();
+        request.setId(requestId);
+        request.setForwarder(owner);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(
+                        "colleague",
+                        "password",
+                        Collections.emptyList()
+                )
+        );
+
+        when(userRepository.findByUsername("colleague"))
+                .thenReturn(Optional.of(colleague));
+
+        when(freightRequestRepository.findById(requestId))
+                .thenReturn(Optional.of(request));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> freightRequestService.requireCanManage(requestId)
+        );
+    }
+
+    @Test
+    void colleagueWithViewAndAddCannotSelectCarrierOffer() {
+        UUID organizationId = UUID.randomUUID();
+        UUID requestId = UUID.randomUUID();
+        UUID offerId = UUID.randomUUID();
+
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+
+        User owner = new User();
+        owner.setId(UUID.randomUUID());
+        owner.setOrganization(organization);
+        owner.setVisibleToColleagues(true);
+        owner.setColleagueAccessLevel(ColleagueAccessLevel.VIEW_AND_ADD);
+
+        User colleague = new User();
+        colleague.setId(UUID.randomUUID());
+        colleague.setOrganization(organization);
+
+        FreightRequest request = new FreightRequest();
+        request.setId(requestId);
+        request.setForwarder(owner);
+
+        CarrierOffer offer = mock(CarrierOffer.class);
+        when(offer.getId()).thenReturn(offerId);
+        when(offer.getFreightRequest()).thenReturn(request);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(
+                        "colleague",
+                        "password",
+                        Collections.emptyList()
+                )
+        );
+
+        when(userRepository.findByUsername("colleague"))
+                .thenReturn(Optional.of(colleague));
+
+        when(carrierOfferRepository.findById(offerId))
+                .thenReturn(Optional.of(offer));
+
+        when(freightRequestRepository.findById(requestId))
+                .thenReturn(Optional.of(request));
+
+        assertThrows(
+                AccessDeniedException.class,
+                () -> freightRequestService.selectCarrierOffer(offerId)
+        );
+
+        verify(freightRequestRepository, never()).save(any());
+    }
+
+    @Test
+    void colleagueWithViewAndAddCannotDeleteCarrierOffer() {
+        UUID organizationId = UUID.randomUUID();
+        UUID requestId = UUID.randomUUID();
+        UUID offerId = UUID.randomUUID();
+
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+
+        User owner = new User();
+        owner.setId(UUID.randomUUID());
+        owner.setOrganization(organization);
+        owner.setVisibleToColleagues(true);
+        owner.setColleagueAccessLevel(ColleagueAccessLevel.VIEW_AND_ADD);
+
+        User colleague = new User();
+        colleague.setId(UUID.randomUUID());
+        colleague.setOrganization(organization);
+
+        FreightRequest request = new FreightRequest();
+        request.setId(requestId);
+        request.setForwarder(owner);
+
+        CarrierOffer offer = mock(CarrierOffer.class);
+        when(offer.getId()).thenReturn(offerId);
+        when(offer.getFreightRequest()).thenReturn(request);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(
+                        "colleague",
+                        "password",
+                        Collections.emptyList()
+                )
+        );
+
+        when(userRepository.findByUsername("colleague"))
+                .thenReturn(Optional.of(colleague));
+
+        when(carrierOfferRepository.findById(offerId))
+                .thenReturn(Optional.of(offer));
+
+        when(freightRequestRepository.findById(requestId))
+                .thenReturn(Optional.of(request));
+
+        assertThrows(
+                AccessDeniedException.class,
+                () -> freightRequestService.deleteCarrierOffer(offerId)
+        );
+
+        verify(carrierOfferRepository, never())
+                .delete(any(CarrierOffer.class));
+
+        verify(freightRequestRepository, never()).save(any());
+    }
+
+    @Test
+    void colleagueWithViewAndAddCannotChangeRequestStatus() {
+        UUID organizationId = UUID.randomUUID();
+        UUID requestId = UUID.randomUUID();
+
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+
+        User owner = new User();
+        owner.setId(UUID.randomUUID());
+        owner.setOrganization(organization);
+        owner.setVisibleToColleagues(true);
+        owner.setColleagueAccessLevel(ColleagueAccessLevel.VIEW_AND_ADD);
+
+        User colleague = new User();
+        colleague.setId(UUID.randomUUID());
+        colleague.setOrganization(organization);
+
+        FreightRequest request = new FreightRequest();
+        request.setId(requestId);
+        request.setForwarder(owner);
+        request.setStatus(RequestStatus.NEW);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(
+                        "colleague",
+                        "password",
+                        Collections.emptyList()
+                )
+        );
+
+        when(userRepository.findByUsername("colleague"))
+                .thenReturn(Optional.of(colleague));
+
+        when(freightRequestRepository.findById(requestId))
+                .thenReturn(Optional.of(request));
+
+        assertThrows(
+                AccessDeniedException.class,
+                () -> freightRequestService.updateStatus(
+                        requestId,
+                        RequestStatus.CONFIRMED
+                )
+        );
+
+        assertEquals(RequestStatus.NEW, request.getStatus());
+
+        verify(freightRequestRepository, never()).save(any());
     }
 }
